@@ -83,6 +83,8 @@ namespace NationsPlugin
 
 
                 }
+               
+               
                 foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
                 {
                     if (f.Value != fac)

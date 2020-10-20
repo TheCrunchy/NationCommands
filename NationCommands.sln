@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28306.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NationCommands", "TransmitCommand\NationCommands.csproj", "{A127F6FC-B533-4D23-894D-2673B0373B80}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NationCommands", "NationsPlugin\NationCommands.csproj", "{A127F6FC-B533-4D23-894D-2673B0373B80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -17,6 +17,7 @@ using Torch.Managers;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
+using static Sandbox.Game.Multiplayer.MyFactionCollection;
 
 namespace NationsPlugin
 {
@@ -144,6 +145,8 @@ namespace NationsPlugin
         }
         private static MethodInfo _factionChangeSuccessInfo = typeof(MyFactionCollection).GetMethod("FactionStateChangeSuccess", BindingFlags.NonPublic | BindingFlags.Static);
 
+ 
+
         [Command("stripalliances", "declare war on everyone")]
         [Permission(MyPromoteLevel.Admin)]
         public void declarewaronall(string tag)
@@ -211,7 +214,20 @@ namespace NationsPlugin
             
 
         }
+        public static string GetStringBetweenCharacters(string input, char charFrom, char charTo)
+        {
+            int posFrom = input.IndexOf(charFrom);
+            if (posFrom != -1) //if found char
+            {
+                int posTo = input.IndexOf(charTo, posFrom + 1);
+                if (posTo != -1) //if found char
+                {
+                    return input.Substring(posFrom + 1, posTo - posFrom - 1);
+                }
+            }
 
+            return string.Empty;
+        }
         [Command("nationjoin", "Join a nation")]
         [Permission(MyPromoteLevel.None)]
         public void massjoin(string tag)
@@ -231,8 +247,27 @@ namespace NationsPlugin
                 Context.Respond("You dont have a faction.");
                 return;
             }
+          Boolean excluding = false;
+            List<String> exclusions = new List<String>();
+            if (playerFac.PrivateInfo.ToLower().Contains("exclude["))
+            {
+                excluding = true;
+                
+                String exclusionBeforeFormat = GetStringBetweenCharacters(playerFac.PrivateInfo, '[', ']');
+                if (exclusionBeforeFormat.Contains(",")){ 
+                String[] addToExclusions = exclusionBeforeFormat.Split(',');
+                    foreach (String s in addToExclusions)
+                    {
+                        exclusions.Add(s.ToLower());
+                    }
+                }
+                else
+                {
+                    exclusions.Add(exclusionBeforeFormat.ToLower());
+                }
 
-
+                
+            }
             if (playerFac.IsLeader(Context.Player.IdentityId) || playerFac.IsFounder(Context.Player.IdentityId))
             {
 
@@ -244,7 +279,34 @@ namespace NationsPlugin
                         {
                             if (f.Value.Description != null && f.Value.Description.Contains(tag))
                             {
-                                Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
+                               
+                                MyFactionPeaceRequestState state = MySession.Static.Factions.GetRequestState(playerFac.FactionId, f.Value.FactionId);
+
+                                if (excluding)
+                                {
+                                    if (!exclusions.Contains(f.Value.Tag.ToLower()))
+                                    {
+                                        if (state != MyFactionPeaceRequestState.Sent)
+                                        {
+                                            Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
+                                        }
+                                        if (state == MyFactionPeaceRequestState.Pending)
+                                        {
+                                            Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (state != MyFactionPeaceRequestState.Sent)
+                                    {
+                                        Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
+                                    }
+                                    if (state == MyFactionPeaceRequestState.Pending)
+                                    {
+                                        Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
+                                    }
+                                }
                             }
                             else
                             {

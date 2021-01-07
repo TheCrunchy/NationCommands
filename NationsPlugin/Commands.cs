@@ -1,4 +1,6 @@
-﻿using Sandbox.Game.Entities;
+﻿using NLog;
+using Sandbox.Engine.Multiplayer;
+using Sandbox.Game.Entities;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -227,6 +229,250 @@ namespace NationsPlugin
             }
 
             return string.Empty;
+        }
+        private static CurrentCooldown CreateNewCooldown(Dictionary<long, CurrentCooldown> cooldownMap, long playerId, long cooldown)
+        {
+
+            var currentCooldown = new CurrentCooldown(cooldown);
+
+            if (cooldownMap.ContainsKey(playerId))
+                cooldownMap[playerId] = currentCooldown;
+            else
+                cooldownMap.Add(playerId, currentCooldown);
+
+            return currentCooldown;
+        }
+
+       
+        
+        [Command("distress", "distress signals")]
+        [Permission(MyPromoteLevel.None)]
+        public void distress(string reason = "")
+        {
+
+
+            if (Context.Player == null)
+            {
+                Context.Respond("no no console no distress");
+                return;
+            }
+
+           
+            IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
+            if (playerFac == null)
+            {
+                Context.Respond("You dont have a faction.");
+                return;
+            }
+            String nation = "";
+            if (reason != "")
+            {
+             
+
+                reason = Context.RawArgs;
+            }
+            var currentCooldownMap = NationsPlugin.CurrentCooldownMap;
+            if (currentCooldownMap.TryGetValue(Context.Player.IdentityId, out CurrentCooldown currentCooldown))
+            {
+
+                long remainingSeconds = currentCooldown.GetRemainingSeconds(null);
+
+                if (remainingSeconds > 0)
+                {
+
+                    NationsPlugin.Log.Info("Cooldown for Player " + Context.Player.DisplayName + " still running! " + remainingSeconds + " seconds remaining!");
+            Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
+                //    DateTime start = DateTime.Now;
+             //    start.AddSeconds(remainingSeconds);
+               //    var diff = start.Subtract(DateTime.Now);
+                  
+               //     string time = String.Format("{0}:{1}:{2}", diff.Minutes, diff.Seconds);
+                 //   Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
+                    return;
+                }
+                currentCooldown = CreateNewCooldown(currentCooldownMap, Context.Player.IdentityId, NationsPlugin.file.CooldownMilliseconds);
+                currentCooldown.StartCooldown(null);
+            }
+            else
+            {
+                currentCooldown = CreateNewCooldown(currentCooldownMap, Context.Player.IdentityId, NationsPlugin.file.CooldownMilliseconds);
+                currentCooldown.StartCooldown(null);
+            }
+            if (EconUtils.getBalance(Context.Player.IdentityId) >= NationsPlugin.file.Price)
+            {
+          
+                if (playerFac.Description.Contains("UNIN"))
+                {
+                    doSignal(Context.Player.Character.GetPosition(),"UNIN", NationsPlugin.file.UNIN, reason);
+                    EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
+                    Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
+                   
+                        return;
+                }
+                if (playerFac.Description.Contains("CONS"))
+                {
+                    doSignal(Context.Player.Character.GetPosition(), "CONS", NationsPlugin.file.CONS, reason);
+                    EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
+                    Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
+                    return;
+                }
+                if (playerFac.Description.Contains("FEDR"))
+                {
+                    doSignal(Context.Player.Character.GetPosition(), "FEDR", NationsPlugin.file.FEDR, reason);
+                    EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
+                    Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
+                    return;
+                }
+            }
+            else
+            {
+                Context.Respond("You cant afford the price of " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC", Color.Orange, NationsPlugin.file.Name);
+            }
+
+
+
+
+
+        }
+
+        [Command("nation reload", "reload config")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void reloadjoin()
+        {
+            NationsPlugin.LoadConfig();
+            Context.Respond("Reloaded!", Color.Orange, NationsPlugin.file.Name);
+        }
+
+
+            public void doSignal(Vector3D Position, String tag, String nation, String reason)
+        {
+            MyGps gps = CreateGps(Position, new Color(NationsPlugin.file.red, NationsPlugin.file.green, NationsPlugin.file.blue), 60, nation, reason);
+
+               NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+         
+            MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
+            {
+                float distance = Vector3.Distance(Position, p.GetPosition());
+                distance = distance * 1000;
+                if (distance <= NationsPlugin.file.DetectionRangeForNearbyInKM)
+                {
+          
+
+                    IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
+                    if (playerFac != null)
+                    {
+                        if (NationsPlugin.file.MessageEnabled && !playerFac.Description.Contains(tag))
+                 
+                        {
+                            MyGps gps2 = CreateGps(Position, new Color(NationsPlugin.file.hostilered, NationsPlugin.file.hostilegreen, NationsPlugin.file.hostileblue), 60, nation, reason);
+                            MyGps gpsRef = gps2;
+                            long entityId = 0L;
+                            entityId = gps2.EntityId;
+
+                            gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                            NationsPlugin.signalsToClear.Add(gps2, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+                            SendMessage(NationsPlugin.file.HostileMessageName, NationsPlugin.file.HostileMessage, Color.Red, (long)p.Id.SteamId);
+                        }
+                    }
+                    else
+                    {
+                        MyGps gps2 = CreateGps(Position, new Color(NationsPlugin.file.hostilered, NationsPlugin.file.hostilegreen, NationsPlugin.file.hostileblue), 60, nation, reason);
+                        MyGps gpsRef = gps2;
+                        long entityId = 0L;
+                        entityId = gps2.EntityId;
+
+                        gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                        NationsPlugin.signalsToClear.Add(gps2, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+                        SendMessage(NationsPlugin.file.HostileMessageName, NationsPlugin.file.HostileMessage, Color.Red, (long)p.Id.SteamId);
+                    }
+
+                }
+            }
+
+            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
+            {
+                IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
+                if (playerFac != null)
+                {
+                    if (playerFac.Description.Contains(tag))
+                    {
+                        MyGps gpsRef = gps;
+                        long entityId = 0L;
+                        entityId = gps.EntityId;
+                      
+                        gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                        // if (NationsPlugin.file.RemoveOldOnNewSignal)
+                        //{
+
+                        //   List<IMyGps> playergpsList = MyAPIGateway.Session?.GPS.GetGpsList(p.Identity.IdentityId);
+                        //
+                        //  if (playergpsList == null)
+                        //      break;
+
+                        //  foreach (IMyGps gps2 in playergpsList)
+                        //  {
+
+                        //    if (gps2.Description.Contains("Nation Distress Signal"))
+                        //    {
+                        //       MyAPIGateway.Session?.GPS.RemoveGps(p.Identity.IdentityId, gps2);
+                        //    }
+
+
+                        //   }
+
+                        //  }
+
+
+                        if (NationsPlugin.file.MessageEnabled)
+                        {
+                            if (reason == "")
+                            {
+                                SendMessage(NationsPlugin.file.MessageName, NationsPlugin.file.Message, Color.Orange, (long)p.Id.SteamId);
+                            }
+                            else
+                            {
+                                SendMessage(NationsPlugin.file.MessageName, NationsPlugin.file.Message, Color.Orange, (long)p.Id.SteamId);
+                                SendMessage(NationsPlugin.file.MessageName, "Signal reads - " + reason, Color.Red, (long)p.Id.SteamId);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+              private MyGps CreateGps(Vector3D Position, Color gpsColor, long seconds, String Nation, String Reason)
+        {
+
+            MyGps gps = new MyGps
+            {
+                Coords = Position,
+                Name = Nation + " - Distress Signal",
+                DisplayName = Nation + " - Distress Signal",
+                GPSColor = gpsColor,
+                IsContainerGPS = true,
+                ShowOnHud = true,
+                DiscardAt = new TimeSpan?(),
+                Description = "Nation Distress Signal \n" + Reason,
+            };
+            gps.UpdateHash();
+          
+
+            return gps;
+        }
+        public static void SendMessage(string author, string message, Color color, long steamID)
+        {
+
+
+            Logger _chatLog = LogManager.GetLogger("Chat");
+            ScriptedChatMsg scriptedChatMsg1 = new ScriptedChatMsg();
+            scriptedChatMsg1.Author = author;
+            scriptedChatMsg1.Text = message;
+            scriptedChatMsg1.Font = "White";
+            scriptedChatMsg1.Color = color;
+            scriptedChatMsg1.Target = Sync.Players.TryGetIdentityId((ulong)steamID);
+            ScriptedChatMsg scriptedChatMsg2 = scriptedChatMsg1;
+            MyMultiplayerBase.SendScriptedChatMessage(ref scriptedChatMsg2);
         }
         [Command("nationjoin", "Join a nation")]
         [Permission(MyPromoteLevel.None)]

@@ -243,7 +243,77 @@ namespace NationsPlugin
             return currentCooldown;
         }
 
-       
+        public String getOnlineNationMembers(String nation)
+        {
+            String online = "";
+            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
+            {
+                IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
+                if (playerFac != null)
+                {
+                    if (playerFac.Description.Contains(nation))
+
+                    {
+                        online += MyMultiplayer.Static.GetMemberName(p.Id.SteamId) + ", ";
+                    }
+                }
+            }
+            if (online == "")
+            {
+                return "None.";
+            }
+            return online;
+        }
+
+        [Command("nation online", "online members")]
+        [Permission(MyPromoteLevel.None)]
+        public void getonlinenation(string nation = "")
+        {
+
+
+            if (Context.Player == null && nation != "")
+            {
+                
+                Context.Respond(getOnlineNationMembers(nation));
+                NationsPlugin.Log.Info(getOnlineNationMembers(nation));
+                return;
+     
+            }
+        
+
+
+            IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
+            if (playerFac == null)
+            {
+                Context.Respond("You dont have a faction.");
+                return;
+            }
+            nation = "";
+                
+                if (playerFac.Description.Contains("UNIN"))
+                {
+           Context.Respond(getOnlineNationMembers("UNIN"),Color.Cyan, "Nation Members Online:");
+
+                    return;
+                }
+                if (playerFac.Description.Contains("CONS"))
+                {
+                Context.Respond(getOnlineNationMembers("CONS"), Color.Cyan, "Nation Members Online:");
+
+                return;
+                }
+                if (playerFac.Description.Contains("FEDR"))
+                {
+                Context.Respond(getOnlineNationMembers("FEDR"), Color.Cyan, "Nation Members Online:");
+
+                return;
+                }
+        }
+   
+
+
+
+
         
         [Command("distress", "distress signals")]
         [Permission(MyPromoteLevel.None)]

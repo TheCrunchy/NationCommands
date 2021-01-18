@@ -29,6 +29,16 @@ namespace NationsPlugin
         public string HostileMessage = "Your sensors have picked up a distress signal from a nearby ship!";
         public string HostileMessageName = "Ship AI";
         public Boolean MessageEnabled = true;
+        public Boolean OptionalAutomaticPeace = false;
+        public ushort socketID = 0;
+        public Boolean doWhitelist = false;
        // public Boolean RemoveOldOnNewSignal = true;
+
+        public String toString()
+        {
+            String temp = "";
+            temp += OptionalAutomaticPeace.ToString() + "\n";
+            return temp;
+        }
     }
 }

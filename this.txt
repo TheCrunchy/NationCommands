@@ -1,0 +1,6 @@
+ Torch.TorchBase.Instance.Managers.GetManager<PluginManager>().Plugins.TryGetValue(Guid.Parse("28a12184-0422-43ba-a6e6-2e228611cca5"), out ITorchPlugin nexus);
+                object[] allPlayers = new object[] { };
+                Assembly assem = Assembly.GetAssembly(nexus.GetType());
+                Type type = assem.GetType("Nexus.API.NexusServerSideAPI");
+                var method = type.GetMethod("GetAllOnlinePlayersObject");
+                method.Invoke(nexus, allPlayers);

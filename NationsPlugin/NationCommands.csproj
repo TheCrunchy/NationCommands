@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Nexus">
+      <HintPath>..\..\..\..\Downloads\nexus (server sectoring &amp; datasync)-v0.81.16\Nexus.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\FixPlayerCommand\FixPlayerCommand\bin\Debug\NLog.dll</HintPath>
     </Reference>

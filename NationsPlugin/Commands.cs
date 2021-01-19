@@ -283,34 +283,16 @@ namespace NationsPlugin
             return currentCooldown;
         }
 
-        public String getOnlineNationMembers(String nation)
-        {
-            String online = "";
 
-
-            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
-            {
-                IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
-                if (playerFac != null)
-                {
-                    if (playerFac.Description.Contains(nation))
-
-                    {
-                        online += MyMultiplayer.Static.GetMemberName(p.Id.SteamId) + ", ";
-                    }
-                }
-            }
-            if (online == "")
-            {
-                return "None.";
-            }
-            return online;
-        }
         [Command("nation add", "send a reputation request")]
-        [Permission(MyPromoteLevel.Admin)]
+        [Permission(MyPromoteLevel.None)]
         public void addToDescription(string nation, string tag)
         {
-            MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+            if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
+            {
+                return;
+            } 
+                MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
             if (fac2 == null)
             {
                 Context.Respond("Cant find that nation.", Color.Red, "The Government");
@@ -327,9 +309,13 @@ namespace NationsPlugin
             Context.Respond("Worked, though keen needs a relog to see changes :(");
         }
         [Command("nation remove", "send a reputation request")]
-        [Permission(MyPromoteLevel.Admin)]
+        [Permission(MyPromoteLevel.None)]
         public void removeFromDescription(string nation, string tag, string name = "")
         {
+            if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
+            {
+                return;
+            }
             MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
             if (fac2 == null)
             {
@@ -542,22 +528,39 @@ namespace NationsPlugin
 
             //Here you can call either my function, or create your own to convert it into more 'usable' data
             List<Player> Players = new List<Player>();
-            foreach (var obj in ReturnPlayers)
+            
+           foreach (object[] obj in ReturnPlayers)
             {
-                Players.Add(new Player((string)obj[0], (ulong)obj[1], (int)obj[2], (int)obj[3]));
-            }
+            
+                Players.Add(new Player((string)obj[0], (ulong)obj[1], (long) obj[2], (int)obj[3]));
+           }
+            Dictionary<int, String> online = new Dictionary<int, string>();
             StringBuilder sb = new StringBuilder();
             foreach (Player player in Players)
             {
                 IMyFaction fac = FacUtils.GetPlayersFaction(player.IdentityID);
-                if (fac != null && fac.Description != null && fac.Description.ToLower().Contains(nation.ToLower())){
-                    sb.Append(player.OnServer + " - " + player.PlayerName + "\n");
+                if (fac != null && fac.Description != null && fac.Description.Contains(nation)) {
+                   // sb.Append(player.OnServer + " # " + player.PlayerName + "\n");
+                   if (online.ContainsKey(player.OnServer))
+                    {
+                        online.TryGetValue(player.OnServer, out string temp);
+                            temp += ", " + player.PlayerName ;
+                        online.Remove(player.OnServer);
+                        online.Add(player.OnServer, temp);
+                    }
+                   else
+                    {
+                        online.Add(player.OnServer, player.PlayerName);
+                    }
                 }
 
 
             }
-
-            Context.Respond(Players.Count.ToString());
+           
+            foreach (KeyValuePair<int, String> pairs in online)
+            {
+                sb.Append("Instance " + pairs.Key + " - " + pairs.Value + "\n");
+            }
             return sb.ToString();
         }
         [Command("nation online", "online members")]
@@ -565,9 +568,9 @@ namespace NationsPlugin
         public void getonlinenation(string nation = "")
         {
 
-            Context.Respond("Command is a thing");
-            if (Context.Player.SteamUserId == 76561198045390854 || Context.Player.IsAdmin)
-            {
+         //   Context.Respond("Command is a thing");
+         //   if (Context.Player.SteamUserId == 76561198045390854 || Context.Player.IsAdmin)
+        //    {
 
 
 
@@ -575,12 +578,12 @@ namespace NationsPlugin
                 //  Context.Respond("Setting up the method broke, will try again");
 
 
+              
 
 
 
-
-                if (Context.Player != null)
-                {
+             if (Context.Player != null)
+          {
 
                     IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
                     if (playerFac == null)
@@ -608,14 +611,36 @@ namespace NationsPlugin
                         nation = "FEDR";
 
                     }
+                MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+                if (fac2 == null)
+                {
+                    Context.Respond("Cant find that nation.", Color.Red, "The Government");
+                    return;
+                }
+                if (NationsPlugin.file.doWhitelist)
+                {
+                    if (fac2.Description.Contains("[" + playerFac.Tag.ToUpper() + "]"))
+                    {
+                        DialogMessage m = new DialogMessage("Online members", nation, getOnline(nation));
+                        ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
+                    }
 
+                    else
+                    {
+                        Context.Respond("You havent been added to the whitelist so you cannot use this command.", Color.Red, "The Government");
+                        return;
+                    }
+                }
+                else
+                {
                     DialogMessage m = new DialogMessage("Online members", nation, getOnline(nation));
                     ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
+                }
                 }
                 else
                 {
                     Context.Respond(getOnline(nation));
-                }
+            //    }
             }
         }
         
@@ -714,6 +739,16 @@ namespace NationsPlugin
 
 
         }
+        [Command("enablewhitelist", "reload config")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void reloadjoin()
+        {
+            NationsPlugin.LoadConfig();
+            NationsPlugin.file.doWhitelist = true;
+            NationsPlugin.SaveConfig();
+            Context.Respond("Reloaded!", Color.Orange, NationsPlugin.file.Name);
+        }
+
 
         [Command("nation reload", "reload config")]
         [Permission(MyPromoteLevel.Admin)]
@@ -737,7 +772,8 @@ namespace NationsPlugin
                 distance = distance * 1000;
                 if (distance <= NationsPlugin.file.DetectionRangeForNearbyInKM)
                 {
-          
+                    
+                   
 
                     IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
                     if (playerFac != null)
@@ -858,21 +894,33 @@ namespace NationsPlugin
         [Permission(MyPromoteLevel.Admin)]
         public void scan(string nation)
         {
+            int count = 0;
             StringBuilder response = new StringBuilder();
             foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
             {
 
                 if (f.Value.Description != null)
                 {
-            
-                    if (f.Value.Description.ToLower().Contains(nation.ToLower()))
+                    if (NationsPlugin.file.doWhitelist) {
+                        IMyFaction nationfac = MySession.Static.Factions.TryGetFactionByTag(nation);
+                     
+                    if (nationfac != null && f.Value.Description.Contains(nation.ToUpper()) && nationfac.Description != null && nationfac.Description.Contains("["+f.Value.Tag.ToUpper()+"]"))
                     {
-                        response.Append(f.Value.Name + " [" + f.Value.Tag + "]\n");
+                        count += f.Value.Members.Count;
+                        response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
                     }
-           
+                }
+                    else
+                    {
+                        if (f.Value.Description.Contains(nation.ToUpper()))
+                        {
+                            count += f.Value.Members.Count;
+                            response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
+                        }
+                    }
                 }
             }
-            Context.Respond(response.ToString());
+            Context.Respond(response.ToString() + "\n" + count);
 
         }
 
@@ -887,15 +935,15 @@ namespace NationsPlugin
                 if (f.Value.Description != null)
                 {
                     int tagsInDescription = 0;
-                    if (f.Value.Description.ToLower().Contains("unin"))
+                    if (f.Value.Description.Contains("UNIN"))
                     {
                         tagsInDescription++;
                     }
-                    if (f.Value.Description.ToLower().Contains("fedr"))
+                    if (f.Value.Description.Contains("FEDR"))
                     {
                         tagsInDescription++;
                     }
-                    if (f.Value.Description.ToLower().Contains("cons"))
+                    if (f.Value.Description.Contains("CONS"))
                     {
                         tagsInDescription++;
                     }
@@ -951,15 +999,15 @@ namespace NationsPlugin
                 }
             }
             int tagsInDescription = 0;
-            if (playerFac.Description.ToLower().Contains("unin"))
+            if (playerFac.Description.Contains("UNIN"))
             {
                 tagsInDescription++;
             }
-            if (playerFac.Description.ToLower().Contains("fedr"))
+            if (playerFac.Description.Contains("FEDR"))
             {
                 tagsInDescription++;
             }
-            if (playerFac.Description.ToLower().Contains("cons"))
+            if (playerFac.Description.Contains("CONS"))
             {
                 tagsInDescription++;
             }
@@ -1006,15 +1054,15 @@ namespace NationsPlugin
                             {
                          
                                     int tagsInDescription2 = 0;
-                                    if (f.Value.Description.ToLower().Contains("unin"))
+                                    if (f.Value.Description.Contains("UNIN"))
                                     {
                                         tagsInDescription++;
                                     }
-                                    if (f.Value.Description.ToLower().Contains("fedr"))
+                                    if (f.Value.Description.Contains("FEDR"))
                                     {
                                         tagsInDescription++;
                                     }
-                                    if (f.Value.Description.ToLower().Contains("cons"))
+                                    if (f.Value.Description.Contains("CONS"))
                                     {
                                         tagsInDescription++;
                                     }

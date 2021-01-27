@@ -1,5 +1,6 @@
 ﻿using NLog;
 using Sandbox.Engine.Multiplayer;
+using Sandbox.Game.Gui;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -22,285 +23,22 @@ using Torch.Managers;
 using Torch.Managers.ChatManager;
 using Torch.Managers.PatchManager;
 using Torch.Session;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
+
 using VRage.Network;
 using VRageMath;
 using static Sandbox.Game.Multiplayer.MyFactionCollection;
+using VRage.Game.ModAPI;
+using Nexus.DataStructures;
+using ServerNetwork.Sync;
+using VRage.Game;
 
 namespace NationsPlugin
 {
     public class NationsPlugin : TorchPluginBase
     {
 
-        [PatchShim]
-        public static class MyChatPatch
-        {
 
-            internal static readonly MethodInfo update =
-                typeof(ChatManagerClient).GetMethod("Multiplayer_ChatMessageReceived", BindingFlags.Instance | BindingFlags.NonPublic) ??
-                throw new Exception("Failed to find patch method");
-
-            internal static readonly MethodInfo updatePatch =
-                typeof(MyChatPatch).GetMethod(nameof(TestPatchMethod), BindingFlags.Static | BindingFlags.Public) ??
-                throw new Exception("Failed to find patch method");
-            public static void Patch(PatchContext ctx)
-            {
-
-                ctx.GetPattern(update).Suffixes.Add(updatePatch);
-
-                Log.Info("Patching Successful MyLargeTurretBase!");
-            }
-            public static bool TestPatchMethod(ulong steamUserId,
-      string messageText,
-      Sandbox.Game.Gui.ChatChannel channel,
-      long targetId,
-      string customAuthorName)
-            {
-                return true;
-            }
-        }
-            //{
-
-            //    if (msg.Text.StartsWith("/n"))
-            //    {
-            //        String messageText = msg.Text;
-
-
-            //        if (playersInNationChat.Contains(msg.Author))
-            //        {
-            //            Commands.SendMessage(MyMultiplayer.Static.GetMemberName(msg.Author), "Toggled off, use /n to toggle", Color.Yellow, (long)msg.Author);
-            //            playersInNationChat.Remove(msg.Author);
-            //            return false;
-            //        }
-            //        else
-            //        {
-            //            Commands.SendMessage(MyMultiplayer.Static.GetMemberName(msg.Author), "Toggled on, use /n to toggle", Color.Yellow, (long)msg.Author);
-            //            playersInNationChat.Add(msg.Author);
-            //            return false;
-            //        }
-
-            //    }
-            //    if (msg.Text.StartsWith("/g"))
-            //    {
-            //        if (playersInNationChat.Contains(msg.Author))
-            //        {
-            //            playersInNationChat.Remove(msg.Author);
-            //            return false;
-            //        }
-            //    }
-            //    if (msg.Text.StartsWith("/f"))
-            //    {
-            //        if (playersInNationChat.Contains(msg.Author))
-            //        {
-            //            playersInNationChat.Remove(msg.Author);
-            //            return false;
-            //        }
-            //    }
-            //    if (playersInNationChat.Contains(msg.Author))
-            //    {
-            //        String nation = "";
-            //        IMyFaction playerFac = FacUtils.GetPlayersFaction(GetIdentityByNameOrId(msg.Author.ToString()).IdentityId);
-
-            //        msg.Text = "";
-            //        msg.TargetId = 24356346457465746;
-            //        msg.CustomAuthorName = "";
-
-
-            //        if (playerFac != null)
-            //        {
-            //            int tagsInDescription = 0;
-            //            if (playerFac.Description.Contains("UNIN"))
-            //            {
-            //                nation = "UNIN";
-            //                tagsInDescription++;
-            //            }
-            //            if (playerFac.Description.Contains("FEDR"))
-            //            {
-            //                nation = "FEDR";
-            //                tagsInDescription++;
-            //            }
-            //            if (playerFac.Description.Contains("CONS"))
-            //            {
-            //                nation = "CONS";
-            //                tagsInDescription++;
-            //            }
-            //            if (tagsInDescription == 1)
-            //            {
-
-            //                IMyFaction nationFac = MySession.Static.Factions.TryGetFactionByTag(nation);
-            //                if (nationFac != null && nationFac.Description.Contains("[" + playerFac.Tag.ToUpper() + "]"))
-            //                {
-            //                    foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
-            //                    {
-            //                        if (p.Id.SteamId != msg.Author)
-            //                        {//
-            //                            if (FacUtils.GetPlayersFaction(p.Identity.IdentityId) != null && FacUtils.GetPlayersFaction(p.Identity.IdentityId).Description.Contains(nation))
-            //                            {
-            //                                IMyFaction fac2 = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
-            //                                int tagsInDescription2 = 0;
-            //                                if (playerFac.Description.Contains("UNIN"))
-            //                                {
-            //                                    nation = "UNIN";
-            //                                    tagsInDescription2++;
-            //                                }
-            //                                if (playerFac.Description.Contains("FEDR"))
-            //                                {
-            //                                    nation = "FEDR";
-            //                                    tagsInDescription2++;
-            //                                }
-            //                                if (playerFac.Description.Contains("CONS"))
-            //                                {
-            //                                    nation = "CONS";
-            //                                    tagsInDescription2++;
-            //                                }
-            //                                if (tagsInDescription2 == 1)
-            //                                {
-            //                                    if (MySession.Static.Players.TryGetSteamId(p.Identity.IdentityId) > 0)
-            //                                    {
-            //                                        Commands.SendMessage(MyMultiplayer.Static.GetMemberName(msg.Author), msg.Text, Color.Yellow, (long)p.Id.SteamId);
-            //                                    }
-            //                                }
-            //                            }
-            //                        }
-            //                    }
-            //                }
-
-            //            }
-            //        }
-            //        return false;
-            //    }
-            //    return true;
-           
-          //  }
-      //  }
-
-
-        //[PatchShim]
-        //internal static class ChatInterceptPatch
-        //{
-
-        //    public static event ChatReceivedDel OnChatRecvAccess;
-        //    // private static 
-        //    public static ChatManagerServer ChatManager;
-        //    internal static void Patch(PatchContext context)
-        //    {
-        //        var target = typeof(MyMultiplayerBase).GetMethod("OnChatMessageReceived_Server", BindingFlags.Static | BindingFlags.NonPublic);
-        //        var patchMethod = typeof(ChatInterceptPatch).GetMethod(nameof(PrefixMessageProcessing), BindingFlags.Static | BindingFlags.NonPublic);
-        //        context.GetPattern(target).Prefixes.Add(patchMethod);
-        //    }
-
-        //    private static bool PrefixMessageProcessing(ref ChatMsg msg)
-        //    {
-        //        if (msg.Author == 0)
-        //        {
-        //            return false;
-        //        }
-        //        if (msg.Text.StartsWith("/n"))
-        //        {
-        //            String messageText = msg.Text;
-
-        //            Log.Info("NATION MESSAGE");
-        //            if (playersInNationChat.Contains(msg.Author))
-        //            {
-
-        //                Commands.SendMessage("Nation Chat: ", "Toggled off", Color.Yellow, (long)msg.Author);
-        //                playersInNationChat.Remove(msg.Author);
-
-        //             //   NationsPlugin._chatmanager.UnmuteUser(msg.Author);
-
-        //                return false;
-        //            }
-        //            else
-        //            {
-        //                //  ChatManagerServer ChatManager  = torchbase.CurrentSession.Managers.GetManager<ChatManagerServer>();
-        //                playersInNationChat.Add(msg.Author);
-        //                Commands.SendMessage("Nation Chat: ", "Toggled on", Color.Yellow, (long)msg.Author);
-        //             //   NationsPlugin._chatmanager.MuteUser(msg.Author);
-        //                return false;
-        //            }
-
-        //        }
-        //        if (msg.Text.StartsWith("/g"))
-        //        {
-        //            if (playersInNationChat.Contains(msg.Author))
-        //            {
-        //                playersInNationChat.Remove(msg.Author);
-        //                Commands.SendMessage("Nation Chat ", "Toggled off", Color.Yellow, (long)msg.Author);
-        //                return false;
-        //            }
-        //        }
-        //        if (msg.Text.StartsWith("/f"))
-        //        {
-        //            if (playersInNationChat.Contains(msg.Author))
-        //            {
-        //                playersInNationChat.Remove(msg.Author);
-        //                Commands.SendMessage("Nation Chat ", "Toggled off", Color.Yellow, (long)msg.Author);
-        //                return false;
-        //            }
-        //        }
-        //        if (playersInNationChat.Contains(msg.Author))
-        //        {
-        //            String nation = "";
-
-        //            IMyFaction playerFac = FacUtils.GetPlayersFaction(GetIdentityByNameOrId(msg.Author.ToString()).IdentityId);
-        //            Log.Info("NATION MESSAGE");
-        //            if (playerFac != null)
-        //            {
-        //                int tagsInDescription = 0;
-        //                if (playerFac.Description.Contains("UNIN"))
-        //                {
-        //                    nation = "UNIN";
-        //                    tagsInDescription++;
-        //                }
-        //                if (playerFac.Description.Contains("FEDR"))
-        //                {
-        //                    nation = "FEDR";
-        //                    tagsInDescription++;
-        //                }
-        //                if (playerFac.Description.Contains("CONS"))
-        //                {
-        //                    nation = "CONS";
-        //                    tagsInDescription++;
-        //                }
-        //                if (tagsInDescription == 1)
-        //                {
-
-        //                    IMyFaction nationFac = MySession.Static.Factions.TryGetFactionByTag(nation);
-
-        //                    if (nationFac != null && nationFac.Description.Contains("[" + playerFac.Tag.ToUpper() + "]"))
-        //                    {
-        //                        foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
-        //                        {
-        //                               if (p.Id.SteamId != msg.Author)
-        //                                {
-        //                            if (FacUtils.GetPlayersFaction(p.Identity.IdentityId) != null && FacUtils.GetPlayersFaction(p.Identity.IdentityId).Description.Contains(nation))
-        //                            {
-        //                                IMyFaction fac2 = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
-
-        //                                if (nationFac.Description.Contains("[" + fac2.Tag.ToUpper() + "]"))
-        //                                {
-
-        //                                    Commands.SendMessage(MyMultiplayer.Static.GetMemberName(msg.Author), msg.Text, Color.Yellow, (long)p.Id.SteamId);
-
-        //                                }
-        //                            }
-        //                              }
-        //                        }
-        //                    }
-
-        //                }
-        //            }
-
-
-        //            return true;
-
-        //        }
-        //        return true;
-        //    }
-        //}
-
-        public static MyIdentity GetIdentityByNameOrId(string playerNameOrSteamId)
+            public static MyIdentity GetIdentityByNameOrId(string playerNameOrSteamId)
         {
             foreach (var identity in MySession.Static.Players.GetAllIdentities())
             {
@@ -315,9 +53,77 @@ namespace NationsPlugin
             }
             return null;
         }
-        public static List<ulong> playersInNationChat = new List<ulong>();
+        public static Whitelist CONS;
+        public static Whitelist FEDR;
+        public static Whitelist UNIN;
+        public static void SaveWhitelist(string file, Whitelist json)
+        {
+            if (!File.Exists(path + "//NationsWhitelists//" + file + ".json"))
+            {
+                //File.Create(path + "//NationsWhitelists//" + file + ".json");
+            }
+            FileUtils xml = new FileUtils();
+            xml.WriteToJsonFile(path + "//NationsWhitelists//" + file + ".json", json);
+
+        }
+        public static Whitelist LoadWhitelist(String file)
+        {
+
+            if (!File.Exists(path + "//NationsWhitelists//" + file + ".json"))
+            {
+                // File.Create(path + "//NationsWhitelists//" + file + ".json");
+                Whitelist list2 = new Whitelist();
+                list2.factions.Add(242354235235, "PLACEHOLDER");
+                return list2;
+               
+            }
+            FileUtils xml = new FileUtils();
+           Whitelist list = xml.ReadFromJsonFile<Whitelist>(path + "//NationsWhitelists//" + file + ".json");
+            return list;
+
+        }
+        public static List<long> playersInNationChat = new List<long>();
 
         public static MethodInfo GetOnlinePlayers;
+
+ 
+        public static MethodInfo SendGlobalMessage;
+        public static bool SetupGlobal()
+        {
+
+            var pluginManager = torchbase.CurrentSession.Managers.GetManager<PluginManager>();
+            var pluginId = new Guid("28a12184-0422-43ba-a6e6-2e228611cca5");
+
+            if (pluginManager.Plugins.TryGetValue(pluginId, out ITorchPlugin nexus))
+            {
+
+                try
+                {
+                    Type ReflectedServerSideAPI2 = nexus.GetType().Assembly.GetType("ServerNetwork.Sync.ChatSync");
+            SendGlobalMessage= ReflectedServerSideAPI2?.GetMethod("BroadcastScriptedChatMessage", BindingFlags.Public | BindingFlags.Static);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
+                    {
+                        MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+                        SendMessage("CRUNCH", ex.ToString(), Color.Blue, (long)player.Id.SteamId);
+                    }
+                    NationsPlugin.Log.Error(ex, "");
+                    return false;
+                }
+            }
+            else
+            {
+                if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
+                {
+                    MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+                    SendMessage("CRUNCH", "SHIT NO WORK", Color.Blue, (long)player.Id.SteamId);
+                }
+            }
+            return false;
+        }
         public static bool SetupMethod()
         {
             var pluginManager = torchbase.CurrentSession.Managers.GetManager<PluginManager>();
@@ -328,9 +134,12 @@ namespace NationsPlugin
 
                 try
                 {
-                    MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+                   // MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
                     Type ReflectedServerSideAPI = nexus.GetType().Assembly.GetType("Nexus.API.NexusServerSideAPI");
                     GetOnlinePlayers = ReflectedServerSideAPI?.GetMethod("GetAllOnlinePlayersObject", BindingFlags.Public | BindingFlags.Static);
+
+
+
                     //SendMessage("CRUNCH", "1", Color.Blue, (long)player.Id.SteamId);
                     //List<object[]> ReturnPlayers = new List<object[]>();
                     //object[] MethodInput = new object[] { ReturnPlayers };
@@ -345,13 +154,13 @@ namespace NationsPlugin
                     //SendMessage("CRUNCH", "5", Color.Blue, (long)player.Id.SteamId);
                     //foreach (object[] obj in ReturnPlayers)
                     //{
-                     
+
                     //    Players.Add(new Player((string)obj[0], (ulong)obj[1], (long)obj[2], (int)obj[3]));
                     //}
                     //SendMessage("CRUNCH", "6", Color.Blue, (long)player.Id.SteamId);
                     //if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
                     //{
-                    
+
                     //    SendMessage("CRUNCH", Players.Count.ToString(), Color.Blue, (long)player.Id.SteamId);
                     //    SendMessage("CRUNCH", ReturnPlayers.Count.ToString(), Color.Blue, (long)player.Id.SteamId);
                     //}
@@ -429,22 +238,73 @@ namespace NationsPlugin
                  sessionManager.SessionStateChanged += SessionChanged;
              }
         }
-
+        public void test (IPlayer p)
+        {
+           if (p == null)
+            {
+                return;
+            }
+            MyIdentity id = GetIdentityByNameOrId(p.SteamId.ToString());
+            if (id == null)
+            {
+                return;
+            }
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+                if (f.Value.Tag.Length > 3)
+                {
+                    if (!f.Value.Tag.Equals("SPRT") && !f.Value.Tag.Equals("MERC") && !f.Value.Tag.Equals("EROR") && !f.Value.Tag.Equals("MEOW") && !f.Value.Tag.Equals("GAIA"))
+                    {
+                        System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId);
+                        if (rep.Item2 < 0)
+                        {
+                            MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, 0);
+                            MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, f.Value.FactionId, 1, true, true);
+                        }
+                    }
+                }
+            }
+            MyFaction ACME = MySession.Static.Factions.TryGetFactionByTag("ACME");
+        
+                System.Tuple<MyRelationsBetweenFactions, int> rep2 = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(id.IdentityId, ACME.FactionId);
+                if (rep2.Item2 < 0)
+                {
+                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, ACME.FactionId, 0);
+                MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, ACME.FactionId, 1, true, true);
+            }
+            }
         private void SessionChanged(ITorchSession session, TorchSessionState state)
         {
 
             if (state == TorchSessionState.Loaded)
             {
-               
-               TorchState = TorchSessionState.Loaded;
+                var folder = Path.Combine(path + "//NationsWhitelists//");
+                Directory.CreateDirectory(folder);
+                CONS = LoadWhitelist("CONS");
+                FEDR = LoadWhitelist("FEDR");
+               UNIN = LoadWhitelist("UNIN");
+                SaveWhitelist("CONS", CONS);
+                SaveWhitelist("FEDR", FEDR);
+                SaveWhitelist("UNIN", UNIN);
+                TorchState = TorchSessionState.Loaded;
                SetupMethod();
-            
+
+                _chatmanager = Torch.CurrentSession.Managers.GetManager<ChatManagerServer>();
+                if (_chatmanager == null)
+                {
+                    Log.Warn("No chat manager loaded!");
+                }
+                else
+                {
+                    _chatmanager.MessageProcessing += MessageRecieved;
+                    session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += test;
+                }
+            }
+
+
+
         
- 
-        
-        
-               }
-       }
+        }
         
 
             public static ConfigFile LoadConfig()
@@ -572,69 +432,142 @@ namespace NationsPlugin
             ScriptedChatMsg scriptedChatMsg2 = scriptedChatMsg1;
             MyMultiplayerBase.SendScriptedChatMessage(ref scriptedChatMsg2);
         }
-        //private static void OnTimedEventC(Object source, System.Timers.ElapsedEventArgs e)
-        //{
-        //    if (TorchState == TorchSessionState.Loaded)
-        //    {
-        //        Task.Run(() =>
-        //        {
-        //            foreach (MyPlayer player in MySession.Static.Players.GetOnlinePlayers())
-        //            {
-        //                Log.Info("1");
-        //                if (player?.Controller.ControlledEntity is MyCockpit controller)
-        //                {
-        //                    Log.Info("2");
-        //                    MyCubeGrid grid = controller.CubeGrid;
-        //                    if (grid != null) { 
-        //                    foreach (IMyBeacon block in grid.GetBlocks().OfType<IMyBeacon>())
-        //                    {
-        //                        Log.Info("3");
-        //                        if (block != null && block.BlockDefinition.SubtypeName.Contains("Transponder") && block.IsFunctional && block.IsWorking)
-        //                        {
-        //                            Log.Info("4");
-        //                            List<IMyEntity> l = new List<IMyEntity>();
-        //                            IMyFaction fac = FacUtils.GetPlayersFaction(FacUtils.GetOwner(grid));
-        //                                if (fac != null)
-        //                                {
-        //                                    Log.Info("fac wasnt null");
-        //                                    BoundingSphereD sphere = new BoundingSphereD(grid.PositionComp.GetPosition(), 15000);
-        //                                    l = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere);
 
-        //                                    foreach (IMyEntity eb in l)
-        //                                    {
-        //                                        MyCubeGrid gridCheck = (eb as MyCubeGrid);
+        public static bool bob = false;
+     private void MessageRecieved(TorchChatMessage msg, ref bool consumed)
+    {
+            if (bob && msg.AuthorSteamId == 76561198045390854)
+            {
+                try
+                {
+                    NationsPlugin.SetupGlobal();
+                    ChatSyncMessage chat = new ChatSyncMessage(msg.Author, msg.AuthorSteamId.Value, (int)msg.Channel, msg.Font, "Crunch testing, DO YOU SEE THIS?", msg.Target);
+                    object[] MethodInput = new object[] { SubsriptionType.MessageType.Chat, chat, 0 };
+                    NationsPlugin.SendGlobalMessage?.Invoke(null, MethodInput);
+                    MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+                    SendMessage("FUCK?", "FUCK", Color.Blue, (long)player.Id.SteamId);
+                }
+                catch (Exception ex)
+                {
+                    if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
+                    {
+                        MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+                        SendMessage("CRUNCH", ex.ToString(), Color.Blue, (long)player.Id.SteamId);
+                    }
+                    return;
+                }
+            }
 
-        //                                        if (gridCheck != null)
-        //                                        {
-        //                                            foreach (IMyBeacon blocks2 in gridCheck.GetBlocks().OfType<IMyBeacon>())
-        //                                            {
-        //                                                if (block != null && block.BlockDefinition.SubtypeName.Contains("Transponder") && block.IsFunctional && block.IsWorking)
-        //                                                {
-        //                                                    IMyFaction fac2 = FacUtils.GetPlayersFaction(FacUtils.GetOwner(gridCheck));
-        //                                                    if (fac2 != null && MySession.Static.Factions.AreFactionsFriends(fac.FactionId, fac2.FactionId))
-        //                                                    {
-        //                                                        MyGps gps = CreateGps(gridCheck, gridCheck.PositionComp.GetPosition(), Color.Green, 15, block.DisplayName);
-        //                                                    }
-        //                                                    else if (fac2 != null && MySession.Static.Factions.AreFactionsNeutrals(fac.FactionId, fac2.FactionId))
-        //                                                    {
-        //                                                        MyGps gps = CreateGps(gridCheck, gridCheck.PositionComp.GetPosition(), Color.White, 15, block.DisplayName);
-        //                                                    }
-        //                                                }
-        //                                            }
-        //                                        }
-        //                                    }
-        //                                }
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        });
+            if (playersInNationChat.Contains((long)msg.AuthorSteamId))
+            {
+                if (!msg.Message.StartsWith("!"))
+                {
+                   
+              
+                String nation = "";
+                IMyFaction playerFac = FacUtils.GetPlayersFaction(GetIdentityByNameOrId(msg.Author.ToString()).IdentityId);
 
-        //    }
-        //}
+                String text = msg.Message;
 
-        private static MyGps CreateGps(MyCubeGrid grid, Vector3D Position, Color gpsColor, int seconds, String Display)
+
+                    Commands.SendMessage(msg.Author, "You are in nation chat", Color.Yellow, (long) msg.AuthorSteamId);
+
+                    if (playerFac != null)
+                {
+                    int tagsInDescription = 0;
+                    if (playerFac.Description.Contains("UNIN"))
+                    {
+                        nation = "UNIN";
+                        tagsInDescription++;
+                    }
+                    if (playerFac.Description.Contains("FEDR"))
+                    {
+                        nation = "FEDR";
+                        tagsInDescription++;
+                    }
+                    if (playerFac.Description.Contains("CONS"))
+                    {
+                        nation = "CONS";
+                        tagsInDescription++;
+                    }
+                        if (NationsPlugin.file.doWhitelist)
+                        {
+                            switch (nation.ToUpper())
+                            {
+                                case "FEDR":
+                                    if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
+                                    {
+                                      
+                                        return;
+                                    }
+                                    break;
+                                case "CONS":
+                                    if (!NationsPlugin.CONS.factions.ContainsKey(playerFac.FactionId))
+                                    {
+                                     
+                                        return;
+                                    }
+                                    break;
+                                case "UNIN":
+                                    if (!NationsPlugin.UNIN.factions.ContainsKey(playerFac.FactionId))
+                                    {
+                                  
+                                        return;
+                                    }
+                                    break;
+                            }
+                        }
+                        if (tagsInDescription == 1)
+                    {
+
+                        IMyFaction nationFac = MySession.Static.Factions.TryGetFactionByTag(nation);
+                        if (nationFac != null) //&& nationFac.Description.Contains("[" + playerFac.Tag.ToUpper() + "]"))
+                        {
+                            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
+                            {
+                                if (p.Id.SteamId != msg.AuthorSteamId)
+                               {
+                                    if (FacUtils.GetPlayersFaction(p.Identity.IdentityId) != null && FacUtils.GetPlayersFaction(p.Identity.IdentityId).Description != null && FacUtils.GetPlayersFaction(p.Identity.IdentityId).Description.Contains(nation))
+                                    {
+                                        IMyFaction fac2 = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
+                                        int tagsInDescription2 = 0;
+                                        if (playerFac.Description.Contains("UNIN"))
+                                        {
+                                            nation = "UNIN";
+                                            tagsInDescription2++;
+                                        }
+                                        if (playerFac.Description.Contains("FEDR"))
+                                        {
+                                            nation = "FEDR";
+                                            tagsInDescription2++;
+                                        }
+                                        if (playerFac.Description.Contains("CONS"))
+                                        {
+                                            nation = "CONS";
+                                            tagsInDescription2++;
+                                        }
+                                        if (tagsInDescription2 == 1)
+                                        {
+                                            if (p.Id.SteamId > 0)
+                                            {
+                                                Commands.SendMessage(msg.Author, text, Color.HotPink, (long)p.Id.SteamId);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                   }
+               
+                consumed = true;
+                }
+            }
+          
+
+        }
+    private static MyGps CreateGps(MyCubeGrid grid, Vector3D Position, Color gpsColor, int seconds, String Display)
         {
 
             MyGps gps = new MyGps
@@ -653,9 +586,10 @@ namespace NationsPlugin
 
             return gps;
         }
-
+        
         private static void OnTimedEventB(Object source, System.Timers.ElapsedEventArgs e)
         {
+            
             if (TorchState != TorchSessionState.Loaded)
             {
           
@@ -666,98 +600,110 @@ namespace NationsPlugin
                MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
                 SendMessage("CRUNCH", "The fucking task is running?", Color.Blue,(long) player.Id.SteamId);
             }
-            int facCount = 0;
-            Task.Run(() =>
+            MyFaction ACME = MySession.Static.Factions.TryGetFactionByTag("ACME");
+            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
             {
-                List<MyFaction> addThese = new List<MyFaction>();
-
-                foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+                System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(p.Identity.IdentityId, ACME.FactionId);
+                if (rep.Item2 < 0)
                 {
+                    MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(p.Identity.IdentityId, ACME.FactionId, Math.Abs(rep.Item2));
+                }
+            }
+            int facCount = 0;
+         //   Task.Run(() =>
+         //   {
+         //       List<MyFaction> addThese = new List<MyFaction>();
+
+         //       foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+         //       {
                    
-                    if (f.Value != null)
-                    {
-                        facCount += 1;
-                        if (f.Value.PrivateInfo == null)
-                        {
+         //           if (f.Value != null)
+         //           {
+         //               facCount += 1;
+         //               if (f.Value.PrivateInfo == null)
+         //               {
 
-                            addThese.Add(f.Value);
+         //                   addThese.Add(f.Value);
 
-                        }
-                        else
-                        {
-                            if (!f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true") && !f.Value.PrivateInfo.ToLower().Contains("autonationpeace=false"))
-                            {
-                                addThese.Add(f.Value);
-
-
-                            }
-                        }
-                        if (f.Value.Description != null)
-                        {
-                            int tagsInDescription = 0;
-                            if (f.Value.Description.Contains("UNIN"))
-                            {
-                                tagsInDescription++;
-                            }
-                            if (f.Value.Description.Contains("FEDR"))
-                            {
-                                tagsInDescription++;
-                            }
-                            if (f.Value.Description.Contains("CONS"))
-                            {
-                                tagsInDescription++;
-                            }
-                            if (tagsInDescription > 1)
-                            {
-
-                                NationsPlugin.Log.Info("NATION - This guys trying to do !nationjoin with multiple tags " + f.Value.Name + " " + f.Value.Tag);
+         //               }
+         //               else
+         //               {
+         //                   if (!f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true") && !f.Value.PrivateInfo.ToLower().Contains("autonationpeace=false"))
+         //                   {
+         //                       addThese.Add(f.Value);
 
 
-                            }
-                            else
-                            {
+         //                   }
+         //               }
+         //               if (f.Value.Description != null)
+         //               {
+         //                   int tagsInDescription = 0;
+         //                   if (f.Value.Description.Contains("UNIN"))
+         //                   {
+         //                       tagsInDescription++;
+         //                   }
+         //                   if (f.Value.Description.Contains("FEDR"))
+         //                   {
+         //                       tagsInDescription++;
+         //                   }
+         //                   if (f.Value.Description.Contains("CONS"))
+         //                   {
+         //                       tagsInDescription++;
+         //                   }
+         //                   if (tagsInDescription > 1)
+         //                   {
 
-                                if (f.Value.Description != null && f.Value.Description.Contains("UNIN") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
-                                {
+         //                       NationsPlugin.Log.Info("NATION - This guys trying to do !nationjoin with multiple tags " + f.Value.Name + " " + f.Value.Tag);
+
+
+         //                   }
+         //                   else
+         //                   {
+
+         //                       if (f.Value.Description != null && f.Value.Description.Contains("UNIN") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
+         //                       {
                                    
                                     
-                                    if (file.doWhitelist){
+         //                           if (file.doWhitelist){
 
-                                    }
-                                    else
-                                    {
-                                        doStuff(f.Value, "UNIN");
-                                    }
-                                }
+         //                           }
+         //                           else
+         //                           {
+         //                               doStuff(f.Value, "UNIN");
+         //                           }
+         //                       }
 
-                                if (f.Value.Description != null && f.Value.Description.Contains("CONS") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
-                                {
+         //                       if (f.Value.Description != null && f.Value.Description.Contains("CONS") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
+         //                       {
 
-                                    doStuff(f.Value, "CONS");
+         //                           doStuff(f.Value, "CONS");
 
-                                }
-                                if (f.Value.Description != null && f.Value.Description.Contains("FEDR") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
-                                {
+         //                       }
+         //                       if (f.Value.Description != null && f.Value.Description.Contains("FEDR") && f.Value.PrivateInfo != null && f.Value.PrivateInfo.ToLower().Contains("autonationpeace=true"))
+         //                       {
 
-                                    doStuff(f.Value, "FEDR");
+         //                           doStuff(f.Value, "FEDR");
 
-                                }
-                            }
-                        }
-                    }
-                }
-         foreach (MyFaction f in addThese)
-                {
-                    String current = f.PrivateInfo;
+         //                       }
+         //                   }
+         //               }
+         //           }
+         //       }
+         //foreach (MyFaction f in addThese)
+         //       {
+         //           String current = f.PrivateInfo;
                 
-                    f.PrivateInfo = "autonationpeace=false\nexclude[]\nTo exclude put tags in the bracket, for example [ITC,ADY]\n" + current;
-                }
-            });
-            if (MySession.Static.Players.GetPlayerByName("Crunch") != null && FUCKINGFUCKFUCK)
-            {
-                MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
-                SendMessage("CRUNCH", facCount.ToString(), Color.Blue, (long)player.Id.SteamId);
-            }
+         //           f.PrivateInfo = "autonationpeace=false\nexclude[]\nTo exclude put tags in the bracket, for example [ITC,ADY]\n" + current;
+         //           VRage.ObjectBuilders.SerializableDefinitionId bob = new VRage.ObjectBuilders.SerializableDefinitionId();
+         //          // f.FactionIcon.ser
+         //         // MySession.Static.Factions.EditFaction(f.FactionId, f.Tag, f.Name, f.Description, f.PrivateInfo, null, f.FactionIcon.Value.Id, f.CustomColor, f.IconColor);
+         //       }
+         //   });
+         //   if (MySession.Static.Players.GetPlayerByName("Crunch") != null && FUCKINGFUCKFUCK)
+         //   {
+         //       MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
+         //       SendMessage("CRUNCH", facCount.ToString(), Color.Blue, (long)player.Id.SteamId);
+         //   }
   
         }
         private static void OnTimedEventA(Object source, System.Timers.ElapsedEventArgs e)

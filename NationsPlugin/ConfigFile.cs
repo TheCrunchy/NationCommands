@@ -15,6 +15,9 @@ namespace NationsPlugin
         public string UNIN = "Union";
         public string FEDR = "Federation";
         public string CONS = "Consortium";
+        public long ConsMinister = 0;
+        public long FedrMinister = 0;
+        public long UninMinister = 0;
         public int red = 252;
         public int green = 236;
         public int blue = 3;

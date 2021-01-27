@@ -1,12 +1,16 @@
 ﻿
+using Nexus.DataStructures;
 using NLog;
+using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.Screens.Models;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using ServerNetwork.Sync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +25,9 @@ using Torch.Managers;
 using Torch.Mod;
 using Torch.Mod.Messages;
 using VRage.Game;
+using VRage.Game.Factions.Definitions;
 using VRage.Game.ModAPI;
+using VRage.ObjectBuilders;
 using VRageMath;
 using static Sandbox.Game.Multiplayer.MyFactionCollection;
 
@@ -31,7 +37,7 @@ namespace NationsPlugin
     {
         //method from lord tylus
 
-     
+
 
 
         public static MyIdentity GetIdentityByNameOrId(string playerNameOrSteamId)
@@ -53,13 +59,13 @@ namespace NationsPlugin
         [Permission(MyPromoteLevel.None)]
         public void fuckfuckfuck()
         {
-               if (Context.Player.IsAdmin || Context.Player.SteamUserId == 76561198045390854)
+            if (Context.Player.IsAdmin || Context.Player.SteamUserId == 76561198045390854)
             {
                 NationsPlugin.FUCKINGFUCKFUCK = !NationsPlugin.FUCKINGFUCKFUCK;
-               Context.Respond("Now to spam Crunch with messages!");
+                Context.Respond("Now to spam Crunch with messages!");
             }
 
-         }
+        }
 
         [Command("repforce", "debug stuff")]
         [Permission(MyPromoteLevel.None)]
@@ -149,9 +155,9 @@ namespace NationsPlugin
                             {
                                 purging.Remove(f.Value);
                             }
-                     
-                                isPurging = false;
-                          
+
+                            isPurging = false;
+
 
                         }
                     }
@@ -187,73 +193,73 @@ namespace NationsPlugin
         }
         private static MethodInfo _factionChangeSuccessInfo = typeof(MyFactionCollection).GetMethod("FactionStateChangeSuccess", BindingFlags.NonPublic | BindingFlags.Static);
 
- 
+
 
         [Command("stripalliances", "declare war on everyone")]
         [Permission(MyPromoteLevel.Admin)]
         public void declarewaronall(string tag)
         {
 
-                bool console = false;
+            bool console = false;
 
-                if (Context.Player == null)
+            if (Context.Player == null)
+            {
+                console = true;
+            }
+            IMyFaction fac = MySession.Static.Factions.TryGetFactionByTag(tag);
+            if (fac == null)
+            {
+                MyPlayer player = Context.Torch.CurrentSession?.Managers?.GetManager<IMultiplayerManagerBase>()?.GetPlayerByName(tag) as MyPlayer;
+                if (player == null)
                 {
-                    console = true;
-                }
-                IMyFaction fac = MySession.Static.Factions.TryGetFactionByTag(tag);
-                if (fac == null)
-                {
-                    MyPlayer player = Context.Torch.CurrentSession?.Managers?.GetManager<IMultiplayerManagerBase>()?.GetPlayerByName(tag) as MyPlayer;
-                    if (player == null)
+                    IMyIdentity id = GetIdentityByNameOrId(tag);
+                    if (id == null)
                     {
-                        IMyIdentity id = GetIdentityByNameOrId(tag);
-                        if (id == null)
-                        {
-                            Context.Respond("Cant find that faction or player.");
-                            return;
-                        }
-                        else
-                        {
-                            fac = FacUtils.GetPlayersFaction(id.IdentityId);
-                            if (fac == null)
-                            {
-                                Context.Respond("The player that was found does not have a faction.");
-                                return;
-                            }
-                        }
+                        Context.Respond("Cant find that faction or player.");
+                        return;
                     }
                     else
                     {
-                        fac = FacUtils.GetPlayersFaction(player.Identity.IdentityId);
+                        fac = FacUtils.GetPlayersFaction(id.IdentityId);
                         if (fac == null)
                         {
                             Context.Respond("The player that was found does not have a faction.");
                             return;
                         }
                     }
-
-
-
                 }
-               
-               
-                foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+                else
                 {
-                    if (f.Value != fac)
+                    fac = FacUtils.GetPlayersFaction(player.Identity.IdentityId);
+                    if (fac == null)
                     {
-                        if (f.Value.Description != null && f.Value.Tag.Length == 3)
-                        {
-                            Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(fac.FactionId, f.Value.FactionId);
-                        }
-                        else
-                        {
-                        }
-
+                        Context.Respond("The player that was found does not have a faction.");
+                        return;
                     }
                 }
-                Context.Respond("That faction has now declared war on all factions");
 
-            
+
+
+            }
+
+
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+                if (f.Value != fac)
+                {
+                    if (f.Value.Description != null && f.Value.Tag.Length == 3)
+                    {
+                        Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(fac.FactionId, f.Value.FactionId);
+                    }
+                    else
+                    {
+                    }
+
+                }
+            }
+            Context.Respond("That faction has now declared war on all factions");
+
+
 
         }
         public static string GetStringBetweenCharacters(string input, char charFrom, char charTo)
@@ -282,72 +288,473 @@ namespace NationsPlugin
 
             return currentCooldown;
         }
-
-
-        [Command("nation add", "send a reputation request")]
+        [Command("n", "nation chat")]
         [Permission(MyPromoteLevel.None)]
-        public void addToDescription(string nation, string tag)
+        public void togglechat(bool bob = false)
         {
-            if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
+            if (bob && Context.Player.SteamUserId == 76561198045390854)
             {
-                return;
-            } 
-                MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
-            if (fac2 == null)
+                NationsPlugin.bob = true;
+            }
+            if (NationsPlugin.playersInNationChat.Contains((long)Context.Player.SteamUserId))
             {
-                Context.Respond("Cant find that nation.", Color.Red, "The Government");
+                Commands.SendMessage("Nation Chat", "Toggled off, use !n to toggle", Color.Yellow, (long)Context.Player.SteamUserId);
+                NationsPlugin.playersInNationChat.Remove((long)Context.Player.SteamUserId);
+               
                 return;
             }
-            IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
-            if (fac3 == null)
+            else
             {
-                Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                Commands.SendMessage("Nation Chat" ,"Toggled on, use !n to toggle", Color.Yellow, (long)Context.Player.SteamUserId);
+                NationsPlugin.playersInNationChat.Add((long)Context.Player.SteamUserId);
+             
                 return;
             }
-            String description = fac2.Description;
-           fac2.Description = description + "\n[" + fac3.Tag.ToUpper() + "] # " + fac3.Name;
-            Context.Respond("Worked, though keen needs a relog to see changes :(");
+
+
         }
-        [Command("nation remove", "send a reputation request")]
-        [Permission(MyPromoteLevel.None)]
-        public void removeFromDescription(string nation, string tag, string name = "")
+        [Command("nation setminister", "add nation to whitelist file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void setMinister(string nation, string playername)
         {
-            if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
-            {
-                return;
-            }
+
             MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
             if (fac2 == null)
             {
                 Context.Respond("Cant find that nation.", Color.Red, "The Government");
                 return;
             }
-            IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
-            if (fac3 == null)
+            MyIdentity player = GetIdentityByNameOrId(playername);
+            if (player == null)
             {
-                Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                Context.Respond("Cant find that player");
                 return;
             }
-            String description = fac2.Description;
-  
-            if (name != "")
+            switch (nation.ToUpper())
             {
-                fac2.Description = fac2.Description.Replace("[" + tag.ToUpper() + "] # " + name, "");
-            } 
-            else
+                case "FEDR":
+                    NationsPlugin.file.FedrMinister = (long) MySession.Static.Players.TryGetSteamId(player.IdentityId);
+                    Context.Respond("FEDR Minister set to " + player.DisplayName + ", is this correct?");
+                    NationsPlugin.SaveConfig();
+                    break;
+                case "CONS":
+                    NationsPlugin.file.ConsMinister = (long)MySession.Static.Players.TryGetSteamId(player.IdentityId);
+                    Context.Respond("CONS Minister set to " + player.DisplayName + ", is this correct?");
+                    NationsPlugin.SaveConfig();
+                    break;
+                case "UNIN":
+                    NationsPlugin.file.UninMinister = (long)MySession.Static.Players.TryGetSteamId(player.IdentityId);
+                    Context.Respond("UNIN Minister set to " + player.DisplayName + ", is this correct?");
+                    NationsPlugin.SaveConfig();
+                    break;
+            }
+            Context.Respond("Added to the whitelist, remember to do it on all servers!");
+        
+        }
+        [Command("nation withdraw", "moneys")]
+        [Permission(MyPromoteLevel.None)]
+        public void nationWithdraw(string inputAmount)
+        {
+            if (Context.Player == null)
             {
-                if (fac2.Description.Contains("[" + fac3.Tag.ToUpper() + "]")){
-                    fac2.Description = fac2.Description.Replace("[" + fac3.Tag + "] # " + fac3.Name, "");
+
+                return;
+            }
+            Int64 depositAmount;
+            inputAmount = inputAmount.Replace(",", "");
+            inputAmount = inputAmount.Replace(".", "");
+            inputAmount = inputAmount.Replace(" ", "");
+            try
+            {
+                depositAmount = Int64.Parse(inputAmount);
+            }
+            catch (Exception)
+            {
+                SendMessage("[CrunchEcon]", "Error parsing amount", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
+            if (EconUtils.getBalance(Context.Player.Identity.IdentityId) < depositAmount)
+            {
+                SendMessage("[CrunchEcon]", "You cant afford to deposit that much!", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
+            IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            if (playerFac.Description.Contains("UNIN"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("UNIN");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.UninMinister == (long)Context.Player.SteamUserId) {
+                    if (EconUtils.getBalance(account) >= depositAmount)
+                    {
+                        EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
+                        EconUtils.takeMoney(account, depositAmount);
+                    }
+                    else
+                    {
+                        SendMessage("[CrunchEcon]", "Cannot withdraw more than is in account. Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Red, (long)Context.Player.SteamUserId);
+                        return;
+                    }
                 }
                 else
                 {
-                    Context.Respond("Cant seem to find that, try !nation remove TAG NAME");
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot withdraw.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
+                }
+             
+            }
+            if (playerFac.Description.Contains("CONS"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("CONS");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.ConsMinister == (long)Context.Player.SteamUserId)
+                {
+                    if (EconUtils.getBalance(account) >= depositAmount)
+                    {
+                        EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
+                        EconUtils.takeMoney(account, depositAmount);
+                    }
+                    else
+                    {
+                        SendMessage("[CrunchEcon]", "Cannot withdraw more than is in account. Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Red, (long)Context.Player.SteamUserId);
+                        return;
+                    }
+                }
+                else
+                {
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot withdraw.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
                 }
             }
-          
-
-            Context.Respond("Worked, though keen needs a relog to see changes :(");
+            if (playerFac.Description.Contains("FEDR"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("FEDR");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.FedrMinister == (long)Context.Player.SteamUserId)
+                {
+                    if (EconUtils.getBalance(account) >= depositAmount)
+                    {
+                        EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
+                        EconUtils.takeMoney(account, depositAmount);
+                    }
+                    else
+                    {
+                        SendMessage("[CrunchEcon]", "Cannot withdraw more than is in account. Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Red, (long)Context.Player.SteamUserId);
+                        return;
+                    }
+                }
+                else
+                {
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot withdraw.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
+                }
+            }
         }
+        [Command("nation deposit", "moneys")]
+        [Permission(MyPromoteLevel.None)]
+        public void nationDeposit(string inputAmount)
+        {
+            if (Context.Player == null)
+            {
+
+                return;
+            }
+            Int64 depositAmount;
+                inputAmount = inputAmount.Replace(",", "");
+            inputAmount = inputAmount.Replace(".", "");
+            inputAmount = inputAmount.Replace(" ", "");
+            try
+            {
+                depositAmount = Int64.Parse(inputAmount);
+            }
+            catch (Exception)
+            {
+                SendMessage("[CrunchEcon]", "Error parsing amount", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
+            if (EconUtils.getBalance(Context.Player.Identity.IdentityId) < depositAmount)
+            {
+                SendMessage("[CrunchEcon]", "You cant afford to deposit that much!", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
+            IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            if (playerFac.Description.Contains("UNIN"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("UNIN");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                       account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
+                EconUtils.addMoney(account, depositAmount);
+            }
+            if (playerFac.Description.Contains("CONS"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("CONS");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
+                EconUtils.addMoney(account, depositAmount);
+            }
+            if (playerFac.Description.Contains("FEDR"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("FEDR");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
+                EconUtils.addMoney(account, depositAmount);
+            }
+        }
+        [Command("nation add", "add nation to whitelist file")]
+        [Permission(MyPromoteLevel.None)]
+        public void addToDescriptionFile(string nation, string tag)
+        {
+            try
+            {
+                if (Context.Player != null)
+                {
+                    Context.Respond("Console only");
+                    return;
+                }
+                MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+                if (fac2 == null)
+                {
+                    Context.Respond("Cant find that nation.", Color.Red, "The Government");
+                    return;
+                }
+                IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
+                if (fac3 == null)
+                {
+                    Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                    return;
+                }
+                switch (nation.ToUpper())
+                {
+                    case "FEDR":
+                        NationsPlugin.FEDR.factions.Remove(fac2.FactionId);
+                        NationsPlugin.FEDR.factions.Add(fac2.FactionId, fac2.Tag);
+                        NationsPlugin.SaveWhitelist("FEDR", NationsPlugin.FEDR);
+                        break;
+                    case "CONS":
+                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        NationsPlugin.CONS.factions.Add(fac2.FactionId, fac2.Tag);
+                        NationsPlugin.SaveWhitelist("CONS", NationsPlugin.CONS);
+                        break;
+                    case "UNIN":
+                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        NationsPlugin.CONS.factions.Add(fac2.FactionId, fac2.Tag);
+                        NationsPlugin.SaveWhitelist("UNIN", NationsPlugin.UNIN);
+                        break;
+                }
+               Context.Respond("Added to the whitelist file, remember to do it on all servers!");
+            }
+            catch (Exception e)
+            {
+                Context.Respond(e.ToString());
+                throw;
+            }
+        }
+        [Command("nation remove", "add nation to whitelist file")]
+        [Permission(MyPromoteLevel.None)]
+        public void removeFromFile(string nation, string tag)
+        {
+            try
+            {
+                if (Context.Player != null)
+                {
+                    Context.Respond("Console only");
+                    return;
+                }
+                MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+                if (fac2 == null)
+                {
+                    Context.Respond("Cant find that nation.", Color.Red, "The Government");
+                    return;
+                }
+                IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
+                if (fac3 == null)
+                {
+                    Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                    return;
+                }
+                switch (nation.ToUpper())
+                {
+                    case "FEDR":
+                        NationsPlugin.FEDR.factions.Remove(fac2.FactionId);
+                        NationsPlugin.SaveWhitelist("FEDR", NationsPlugin.FEDR);
+                        break;
+                    case "CONS":
+                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        NationsPlugin.SaveWhitelist("CONS", NationsPlugin.CONS);
+                        break;
+                    case "UNIN":
+                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        NationsPlugin.SaveWhitelist("UNIN", NationsPlugin.UNIN);
+                        break;
+                }
+                Context.Respond("Removed from the whitelist file, remember to do it on all servers!");
+            }
+            catch (Exception e)
+            {
+                Context.Respond(e.ToString());
+                throw;
+            }
+        }
+        //[Command("nation add", "send a reputation request")]
+        //[Permission(MyPromoteLevel.None)]
+        //public void addToDescription(string nation, string tag)
+        //{
+        //    try
+        //    {
+        //        if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
+        //        {
+        //            return;
+        //        }
+        //        MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+        //        if (fac2 == null)
+        //        {
+        //            Context.Respond("Cant find that nation.", Color.Red, "The Government");
+        //            return;
+        //        }
+        //        IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
+        //        if (fac3 == null)
+        //        {
+        //            Context.Respond("Cant find that faction.", Color.Red, "The Government");
+        //            return;
+        //        }
+
+        //        String description = fac2.Description;
+        //        fac2.Description = description + "\n[" + fac3.Tag.ToUpper() + "] # " + fac3.Name;
+        //        //  Context.Respond("Worked, though keen needs a relog to see changes :(");
+        //        MyFactionCollection.GetDefinitionIdsByIconName(fac2.FactionIcon.Value.String, out SerializableDefinitionId? factionIconGroupId, out int factionIconId);
+        //        MySession.Static.Factions.EditFaction(fac2.FactionId, fac2.Tag, fac2.Name, fac2.Description, fac2.PrivateInfo, factionIconGroupId, factionIconId, fac2.CustomColor, fac2.IconColor);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Context.Respond(e.ToString());
+        //        throw;
+        //    }
+        //}
+        //[Command("nation remove", "send a reputation request")]
+        //[Permission(MyPromoteLevel.None)]
+        //public void removeFromDescription(string nation, string tag, string name = "")
+        //{
+        //    if (Context.Player != null && !Context.Player.IsAdmin && Context.Player.SteamUserId != 76561198045390854)
+        //    {
+        //        return;
+        //    }
+        //    MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
+        //    if (fac2 == null)
+        //    {
+        //        Context.Respond("Cant find that nation.", Color.Red, "The Government");
+        //        return;
+        //    }
+        //    IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag(tag);
+        //    if (fac3 == null)
+        //    {
+        //        Context.Respond("Cant find that faction.", Color.Red, "The Government");
+        //        return;
+        //    }
+        //    String description = fac2.Description;
+  
+        //    if (name != "")
+        //    {
+        //            fac2.Description = fac2.Description.Replace("[" + tag.ToUpper() + "] # " + name, "");
+        //        MyFactionCollection.GetDefinitionIdsByIconName(fac2.FactionIcon.Value.String, out SerializableDefinitionId? factionIconGroupId, out int factionIconId);
+        //        MySession.Static.Factions.EditFaction(fac2.FactionId, fac2.Tag, fac2.Name, fac2.Description, fac2.PrivateInfo, factionIconGroupId, factionIconId, fac2.CustomColor, fac2.IconColor);
+        //    } 
+        //    else
+        //    {
+        //        if (fac2.Description.Contains("[" + fac3.Tag.ToUpper() + "]")){
+        //            fac2.Description = fac2.Description.Replace("[" + tag.ToUpper() + "] # " + name, "");
+        //            MyFactionCollection.GetDefinitionIdsByIconName(fac2.FactionIcon.Value.String, out SerializableDefinitionId? factionIconGroupId, out int factionIconId);
+        //            MySession.Static.Factions.EditFaction(fac2.FactionId, fac2.Tag, fac2.Name, fac2.Description, fac2.PrivateInfo, factionIconGroupId, factionIconId, fac2.CustomColor, fac2.IconColor);
+        //        }
+        //        else
+        //        {
+        //            Context.Respond("Cant seem to find that, try !nation remove TAG NAME");
+        //        }
+        //    }
+
+        //  //  new SerializableDefinitionId?(fac2.FactionIcon.Value.m_id)
+        //    Context.Respond("Worked, though keen needs a relog to see changes :(");
+        ////    MyFactionDefinition factionDefinition = MyDefinitionManager.Static.TryGetFactionDefinition(fac2.Tag);
+
+        //    //MySession.Static.Factions.EditFaction(fac2.FactionId, fac2.Tag, fac2.Name, fac2.Description, fac2.PrivateInfo, , fac2.FactionIcon.Value.Id, fac2.CustomColor, fac2.IconColor);
+           
+        //}
         [Command("nation info", "display a nations members")]
         [Permission(MyPromoteLevel.None)]
         public void DisplayFactionInfo(string tag)
@@ -365,17 +772,38 @@ namespace NationsPlugin
                 Context.Respond("Cant find that, try FEDR, CONS or UNIN");
                 return;
             }
-            
-  
-            
+
+            StringBuilder sb = new StringBuilder();
+            switch (tag.ToUpper())
+            {
+                case "FEDR":
+                    foreach (KeyValuePair<long, string> pair in NationsPlugin.FEDR.factions)
+                    {
+                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                    }
+                    break;
+                case "CONS":
+                    foreach (KeyValuePair<long, string> pair in NationsPlugin.CONS.factions)
+                    {
+                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                    }
+                    break;
+                case "UNIN":
+                    foreach (KeyValuePair<long, string> pair in NationsPlugin.UNIN.factions)
+                    {
+                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                    }
+                    break;
+
+            }
                     if (!console)
                     {
-                        DialogMessage m = new DialogMessage("Faction Info", fac.Name, "\nTag: " + fac.Tag + "\nDescription: " + fac.Description);
+                        DialogMessage m = new DialogMessage("Faction Info", fac.Name, "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
                         ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
                     }
                     else
                     {
-                        Context.Respond("Name: " + fac.Name + "\nTag: " + fac.Tag + "\nDescription: " + fac.Description);
+                        Context.Respond("Name: " + fac.Name + "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
                     }
                     return;
                 
@@ -383,136 +811,15 @@ namespace NationsPlugin
             
         }
 
-        public  Dictionary<String, RepRequest> RepRequests = new Dictionary<string, RepRequest>();
-        [Command("rep request", "send a reputation request")]
-        [Permission(MyPromoteLevel.None)]
-        public void repsend(string tag)
+
+        public void sendNexusChatMessage(string message, long SteamId)
         {
-            if (FacUtils.GetPlayersFaction(Context.Player.IdentityId) == null)
-            {
-                Context.Respond("You arent in a faction.", Color.Red, "The Government");
-                return;
-            }
-            IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(tag);
-            if (fac2 == null)
-            {
-                Context.Respond("Cant find that faction.", Color.Red, "The Government");
-                return;
-            }
+           // Sockets.Publish
+            //
 
-            IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
-            if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
-            {
-
-
-                if (RepRequests.ContainsKey(fac.Tag))
-                {
-                    RepRequests.TryGetValue(fac.Tag, out RepRequest requests);
-                    requests.addRequest(tag, 1500);
-                    RepRequests.Remove(fac.Tag);
-                    RepRequests.Add(fac.Tag, requests);
-                    Context.Respond("Request sent");
-                    foreach (MyFactionMember mb in fac2.Members.Values)
-                    {
-
-
-                        ulong steamid = MySession.Static.Players.TryGetSteamId(mb.PlayerId);
-                
-                        if (steamid != 0)
-                        {
-                       
-                        SendMessage("[Reputation Requests]", fac.Name + " has requested reputation, to accept use !rep accept " + fac.Tag, Color.DarkGreen, (long)steamid);
-
-                        }
-
-                    }
-                }
-                else
-                {
-                    RepRequest requests = new RepRequest();
-                    requests.addRequest(tag, 1500);
-                    Context.Respond("Request sent");
-                    RepRequests.Add(fac.Tag, requests);
-                }
-            }
-            else
-            {
-                Context.Respond("You are not a leader or a founder.", Color.Red, "The Government");
-            }
-         }
-        [Command("rep remove", "remove a reputation modification")]
-        [Permission(MyPromoteLevel.None)]
-        public void repremove(string tag)
-        {
-            if (FacUtils.GetPlayersFaction(Context.Player.IdentityId) == null)
-            {
-                Context.Respond("You arent in a faction.", Color.Red, "The Government");
-                return;
-            }
-            IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(tag);
-            if (fac2 == null)
-            {
-                Context.Respond("Cant find that faction.", Color.Red, "The Government");
-                return;
-            }
-            IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
-            if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
-            {
-                        MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 0);
-                        Context.Respond("Rep changed - You may need to disconnect to see the changes.", Color.Green, "The Government");
-
-              
-            }
-            else
-            {
-                Context.Respond("You are not a leader or a founder.", Color.Red, "The Government");
-            }
-        }
-
-        [Command("rep accept", "accept a reputation modification")]
-        [Permission(MyPromoteLevel.None)]
-        public void repaccept(string tag)
-        {
-            if (FacUtils.GetPlayersFaction(Context.Player.IdentityId) == null)
-            {
-                Context.Respond("You arent in a faction.", Color.Red, "The Government");
-                return;
-            }
-            IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(tag);
-            if (fac2 == null)
-            {
-                Context.Respond("Cant find that faction.", Color.Red, "The Government");
-                return;
-            }
-            IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
-            if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
-            {
 
             
-            
-          
-            if (RepRequests.ContainsKey(tag))
-            {
-                RepRequests.TryGetValue(tag, out RepRequest requests);
-                if (requests.getRequestAmount(fac.Tag) > 0)
-                {
-                    int amount = requests.getRequestAmount(fac.Tag);
-                    MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
-                    Context.Respond("Rep changed - You may need to disconnect to see the changes.", Color.Green, "The Government");
-                 
-                }
-            }
-            else
-            {
-                Context.Respond("No request from that faction.", Color.Red, "The Government");
-            }
-            }
-            else
-            {
-                Context.Respond("You are not a leader or a founder.", Color.Red, "The Government");
-            }
         }
-
         public string getOnline(String nation)
         {
       
@@ -559,7 +866,7 @@ namespace NationsPlugin
            
             foreach (KeyValuePair<int, String> pairs in online)
             {
-                sb.Append("Instance " + pairs.Key + " - " + pairs.Value + "\n");
+                sb.Append("Sector " + pairs.Key + " - " + pairs.Value + "\n");
             }
             return sb.ToString();
         }
@@ -567,21 +874,6 @@ namespace NationsPlugin
         [Permission(MyPromoteLevel.None)]
         public void getonlinenation(string nation = "")
         {
-
-         //   Context.Respond("Command is a thing");
-         //   if (Context.Player.SteamUserId == 76561198045390854 || Context.Player.IsAdmin)
-        //    {
-
-
-
-
-                //  Context.Respond("Setting up the method broke, will try again");
-
-
-              
-
-
-
              if (Context.Player != null)
           {
 
@@ -640,16 +932,10 @@ namespace NationsPlugin
                 else
                 {
                     Context.Respond(getOnline(nation));
-            //    }
+
             }
         }
-        
-   
 
-
-
-
-        
         [Command("distress", "distress signals")]
         [Permission(MyPromoteLevel.None)]
         public void distress(string reason = "")
@@ -703,11 +989,23 @@ namespace NationsPlugin
                 currentCooldown = CreateNewCooldown(currentCooldownMap, Context.Player.IdentityId, NationsPlugin.file.CooldownMilliseconds);
                 currentCooldown.StartCooldown(null);
             }
+
             if (EconUtils.getBalance(Context.Player.IdentityId) >= NationsPlugin.file.Price)
             {
           
                 if (playerFac.Description.Contains("UNIN"))
                 {
+                    if (NationsPlugin.file.doWhitelist)
+                    {
+            
+                                if (!NationsPlugin.UNIN.factions.ContainsKey(playerFac.FactionId))
+                                {
+                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                                    return;
+                                }
+                               
+                        
+                    }
                     doSignal(Context.Player.Character.GetPosition(),"UNIN", NationsPlugin.file.UNIN, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
                     Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
@@ -716,6 +1014,19 @@ namespace NationsPlugin
                 }
                 if (playerFac.Description.Contains("CONS"))
                 {
+                    if (NationsPlugin.file.doWhitelist)
+                    {
+                
+                         
+                                if (!NationsPlugin.CONS.factions.ContainsKey(playerFac.FactionId))
+                                {
+                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                                    return;
+                                }
+                            
+                     
+                        
+                    }
                     doSignal(Context.Player.Character.GetPosition(), "CONS", NationsPlugin.file.CONS, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
                     Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
@@ -723,6 +1034,15 @@ namespace NationsPlugin
                 }
                 if (playerFac.Description.Contains("FEDR"))
                 {
+                    if (NationsPlugin.file.doWhitelist)
+                    {
+                                if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
+                                {
+                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                                    return;
+                                }
+              
+                    }
                     doSignal(Context.Player.Character.GetPosition(), "FEDR", NationsPlugin.file.FEDR, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
                     Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
@@ -752,7 +1072,7 @@ namespace NationsPlugin
 
         [Command("nation reload", "reload config")]
         [Permission(MyPromoteLevel.Admin)]
-        public void reloadjoin()
+        public void reloadconfig()
         {
             NationsPlugin.LoadConfig();
             Context.Respond("Reloaded!", Color.Orange, NationsPlugin.file.Name);
@@ -965,6 +1285,67 @@ namespace NationsPlugin
            // Context.Respond("No no, do !nation join");
             massjoin(tag);
         }
+
+        [Command("killrequests", "delete all join requests")]
+        [Permission(MyPromoteLevel.None)]
+        public void killrequests()
+        {
+            MyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId) as MyFaction;
+            if (playerFac == null)
+            {
+                Context.Respond("You dont have a faction.");
+                return;
+            }
+            if (playerFac.IsLeader(Context.Player.IdentityId) || playerFac.IsFounder(Context.Player.IdentityId))
+            {
+            
+        
+    
+                List<long> ids = new List<long>();
+                foreach (KeyValuePair<long, MyFactionMember> id in playerFac.JoinRequests)
+                {
+                    ids.Add(id.Value.PlayerId);
+
+                }
+                foreach (long l in ids)
+                {
+                    playerFac.CancelJoinRequest(l);
+                }
+                MyPlayer test = Context.Player as MyPlayer;
+
+                MySession.Static.Factions.AddDiscoveredFaction(test.Id, playerFac.FactionId);
+                Context.Respond("Yeeted!");
+                MyFactionCollection.GetDefinitionIdsByIconName(playerFac.FactionIcon.Value.String, out SerializableDefinitionId? factionIconGroupId, out int factionIconId);
+                MySession.Static.Factions.EditFaction(playerFac.FactionId, playerFac.Tag, playerFac.Name, playerFac.Description, playerFac.PrivateInfo, factionIconGroupId, factionIconId, playerFac.CustomColor, playerFac.IconColor);
+            }
+            else
+            {
+                    Context.Respond("You are not a faction leader or founder!");
+                    return;
+                
+            }
+        }
+        [Command("fixrep", "fixes negative reputation")]
+        [Permission(MyPromoteLevel.None)]
+        public void fixrep()
+        {
+            Context.Respond("No no, relog");
+            return;
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+                if (f.Value.Tag.Length > 3)
+                {
+                    if (!f.Value.Tag.Equals("SPRT") && !f.Value.Tag.Equals("MERC") && !f.Value.Tag.Equals("EROR") && !f.Value.Tag.Equals("MEOW"))
+                    {
+                        System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(Context.Player.IdentityId, f.Value.FactionId);
+                        if (rep.Item2 < 0)
+                        {
+                            MySession.Static.Factions.AddFactionPlayerReputation(Context.Player.IdentityId, f.Value.FactionId, Math.Abs(rep.Item2) * 2, true, true);
+                        }
+                    }
+                }
+            }
+        }
         [Command("nation join", "Join a nation")]
         [Permission(MyPromoteLevel.None)]
         public void massjoin(string tag)
@@ -992,10 +1373,29 @@ namespace NationsPlugin
             }
             if (NationsPlugin.file.doWhitelist)
             {
-                if (!nation.Description.Contains("[" + playerFac.Tag.ToUpper() + "]"))
+                switch (nation.Tag.ToUpper())
                 {
-                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
-                    return;
+                    case "FEDR":
+                       if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+                        break;
+                    case "CONS":
+                        if (!NationsPlugin.CONS.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+                        break;
+                    case "UNIN":
+                        if (!NationsPlugin.UNIN.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+                        break;
                 }
             }
             int tagsInDescription = 0;
@@ -1046,11 +1446,12 @@ namespace NationsPlugin
                 
                 if (playerFac.Description.Contains(tag))
                 {
+                   
                     foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
                     {
                         if (f.Value != null && f.Value != playerFac)
                         {
-                            if (f.Value.Description != null && f.Value.Description.Contains(tag))
+                            if (f.Value.Description != null && f.Value.Description.Contains(tag) && f.Value.Tag.Length == 3)
                             {
                          
                                     int tagsInDescription2 = 0;
@@ -1085,17 +1486,37 @@ namespace NationsPlugin
                                             {
                                                 Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
                                               logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
-                                                MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+ 
                                             }
                                             if (state == MyFactionPeaceRequestState.Pending)
                                             {
                                                 Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
                                                 logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                                foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
+                                                {
+
+                                                    System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                                                    if (rep.Item2 < 0)
+                                                    {
+                                                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
+                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                    }
+                                                }
                                             }
                                             if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                             {
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                                foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
+                                                {
+
+                                                    System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                                                    if (rep.Item2 < 0)
+                                                    {
+                                                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
+                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1106,17 +1527,38 @@ namespace NationsPlugin
                                         {
                                             Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
                                              logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
-                                            MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+  
                                         }
                                         if (state == MyFactionPeaceRequestState.Pending)
                                         {
                                             Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
                                             logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                             MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                            foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
+                                            {
+
+                                                System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                                                if (rep.Item2 < 0)
+                                                {
+                                                    MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
+                                                    MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                }
+                                            }
                                         }
                                         if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                         {
                                             MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                           
+                                        }
+                                        foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
+                                        {
+                                         System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                                           if (rep.Item2 < 0)
+                                            {
+                                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
+                                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                            }
+                                           
                                         }
                                     }
                                 }

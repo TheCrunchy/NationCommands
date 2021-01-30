@@ -71,9 +71,11 @@ namespace NationsPlugin
 
             if (!File.Exists(path + "//NationsWhitelists//" + file + ".json"))
             {
-                // File.Create(path + "//NationsWhitelists//" + file + ".json");
+               // File.Create(path + "//NationsWhitelists//" + file + ".json");
+                Log.Info("FUCK FUCK FUCK FUCK");
                 Whitelist list2 = new Whitelist();
                 list2.factions.Add(242354235235, "PLACEHOLDER");
+                SaveWhitelist(file, list2);
                 return list2;
                
             }
@@ -217,6 +219,8 @@ namespace NationsPlugin
             aTimer.Interval = 30000;
             aTimer.Elapsed += OnTimedEventA;
             aTimer.AutoReset = true;
+            var folder = Path.Combine(path + "//NationsWhitelists//");
+            Directory.CreateDirectory(folder);
             //cTimer.Enabled = true;
             //cTimer.Enabled = false;
             //cTimer.Interval = 30000;
@@ -278,14 +282,13 @@ namespace NationsPlugin
 
             if (state == TorchSessionState.Loaded)
             {
-                var folder = Path.Combine(path + "//NationsWhitelists//");
-                Directory.CreateDirectory(folder);
+        
                 CONS = LoadWhitelist("CONS");
                 FEDR = LoadWhitelist("FEDR");
                UNIN = LoadWhitelist("UNIN");
-                SaveWhitelist("CONS", CONS);
-                SaveWhitelist("FEDR", FEDR);
-                SaveWhitelist("UNIN", UNIN);
+               // SaveWhitelist("CONS", CONS);
+              //  SaveWhitelist("FEDR", FEDR);
+               // SaveWhitelist("UNIN", UNIN);
                 TorchState = TorchSessionState.Loaded;
                SetupMethod();
 

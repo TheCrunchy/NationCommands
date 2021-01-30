@@ -351,6 +351,108 @@ namespace NationsPlugin
             Context.Respond("Added to the whitelist, remember to do it on all servers!");
         
         }
+        [Command("nation balance", "moneys")]
+        [Permission(MyPromoteLevel.None)]
+        public void nationBalance()
+        {
+            if (Context.Player == null)
+            {
+
+                return;
+            }
+            IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            if (playerFac.Description.Contains("UNIN"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("UNIN");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.UninMinister == (long)Context.Player.SteamUserId)
+                {
+          
+                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
+                    
+                }
+                else
+                {
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot see balance.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
+                }
+
+            }
+            if (playerFac.Description.Contains("CONS"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("CONS");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.ConsMinister == (long)Context.Player.SteamUserId)
+                {
+            
+                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
+                    
+                }
+                else
+                {
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot see balance.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
+                }
+            }
+            if (playerFac.Description.Contains("FEDR"))
+            {
+                IMyFaction nation = MySession.Static.Factions.TryGetFactionByTag("FEDR");
+                long account = 0;
+                foreach (KeyValuePair<long, MyFactionMember> m in nation.Members)
+                {
+                    if (m.Value.IsFounder)
+                    {
+                        account = m.Value.PlayerId;
+                        break;
+                    }
+                }
+                if (account == 0)
+                {
+                    Context.Respond("Couldnt find the account, tell Crunch");
+                    return;
+                }
+                if (NationsPlugin.file.FedrMinister == (long)Context.Player.SteamUserId)
+                {
+           
+                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
+                    
+                }
+                else
+                {
+                    SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot withdraw.", Color.Red, (long)Context.Player.SteamUserId);
+                    return;
+                }
+            }
+        }
         [Command("nation withdraw", "moneys")]
         [Permission(MyPromoteLevel.None)]
         public void nationWithdraw(string inputAmount)
@@ -371,6 +473,11 @@ namespace NationsPlugin
             catch (Exception)
             {
                 SendMessage("[CrunchEcon]", "Error parsing amount", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
+            if (depositAmount < 0 || depositAmount == 0)
+            {
+                SendMessage("[CrunchEcon]", "Must be a positive number", Color.Red, (long)Context.Player.SteamUserId);
                 return;
             }
             if (EconUtils.getBalance(Context.Player.Identity.IdentityId) < depositAmount)
@@ -401,6 +508,8 @@ namespace NationsPlugin
                     {
                         EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
                         EconUtils.takeMoney(account, depositAmount);
+                        SendMessage("[CrunchEcon]", "Withdrawn. New balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
                     }
                     else
                     {
@@ -438,6 +547,8 @@ namespace NationsPlugin
                     {
                         EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
                         EconUtils.takeMoney(account, depositAmount);
+                        SendMessage("[CrunchEcon]", "Withdrawn. New balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
                     }
                     else
                     {
@@ -474,6 +585,8 @@ namespace NationsPlugin
                     {
                         EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
                         EconUtils.takeMoney(account, depositAmount);
+                        SendMessage("[CrunchEcon]", "Withdrawn. New balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                        return;
                     }
                     else
                     {
@@ -510,6 +623,11 @@ namespace NationsPlugin
                 SendMessage("[CrunchEcon]", "Error parsing amount", Color.Red, (long)Context.Player.SteamUserId);
                 return;
             }
+            if (depositAmount < 0 || depositAmount == 0)
+            {
+                SendMessage("[CrunchEcon]", "Must be a positive number", Color.Red, (long)Context.Player.SteamUserId);
+                return;
+            }
             if (EconUtils.getBalance(Context.Player.Identity.IdentityId) < depositAmount)
             {
                 SendMessage("[CrunchEcon]", "You cant afford to deposit that much!", Color.Red, (long)Context.Player.SteamUserId);
@@ -535,6 +653,8 @@ namespace NationsPlugin
                 }
                 EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
                 EconUtils.addMoney(account, depositAmount);
+                SendMessage("[CrunchEcon]", "Deposited", Color.Green, (long)Context.Player.SteamUserId);
+                return;
             }
             if (playerFac.Description.Contains("CONS"))
             {
@@ -555,6 +675,7 @@ namespace NationsPlugin
                 }
                 EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
                 EconUtils.addMoney(account, depositAmount);
+                SendMessage("[CrunchEcon]", "Deposited", Color.Green, (long)Context.Player.SteamUserId);
             }
             if (playerFac.Description.Contains("FEDR"))
             {
@@ -575,6 +696,16 @@ namespace NationsPlugin
                 }
                 EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
                 EconUtils.addMoney(account, depositAmount);
+                SendMessage("[CrunchEcon]", "Deposited", Color.Green, (long)Context.Player.SteamUserId);
+            }
+        }
+        [Command("fuckfuckfuck", "add nation to whitelist file")]
+        [Permission(MyPromoteLevel.None)]
+        public void fuckfuckfuckfuck()
+        {
+            if (NationsPlugin.FEDR == null)
+            {
+                Context.Respond("THIS IS NULL");
             }
         }
         [Command("nation add", "add nation to whitelist file")]
@@ -603,17 +734,25 @@ namespace NationsPlugin
                 switch (nation.ToUpper())
                 {
                     case "FEDR":
-                        NationsPlugin.FEDR.factions.Remove(fac2.FactionId);
+                        if (NationsPlugin.FEDR.factions.ContainsKey(fac2.FactionId)){
+                            NationsPlugin.FEDR.factions.Remove(fac2.FactionId);
+                        }
                         NationsPlugin.FEDR.factions.Add(fac2.FactionId, fac2.Tag);
                         NationsPlugin.SaveWhitelist("FEDR", NationsPlugin.FEDR);
                         break;
                     case "CONS":
-                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        if (NationsPlugin.CONS.factions.ContainsKey(fac2.FactionId))
+                        {
+                            NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        }
                         NationsPlugin.CONS.factions.Add(fac2.FactionId, fac2.Tag);
                         NationsPlugin.SaveWhitelist("CONS", NationsPlugin.CONS);
                         break;
                     case "UNIN":
-                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        if (NationsPlugin.UNIN.factions.ContainsKey(fac2.FactionId))
+                        {
+                            NationsPlugin.UNIN.factions.Remove(fac2.FactionId);
+                        }
                         NationsPlugin.CONS.factions.Add(fac2.FactionId, fac2.Tag);
                         NationsPlugin.SaveWhitelist("UNIN", NationsPlugin.UNIN);
                         break;
@@ -660,7 +799,7 @@ namespace NationsPlugin
                         NationsPlugin.SaveWhitelist("CONS", NationsPlugin.CONS);
                         break;
                     case "UNIN":
-                        NationsPlugin.CONS.factions.Remove(fac2.FactionId);
+                        NationsPlugin.UNIN.factions.Remove(fac2.FactionId);
                         NationsPlugin.SaveWhitelist("UNIN", NationsPlugin.UNIN);
                         break;
                 }
@@ -779,19 +918,28 @@ namespace NationsPlugin
                 case "FEDR":
                     foreach (KeyValuePair<long, string> pair in NationsPlugin.FEDR.factions)
                     {
-                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        if (MySession.Static.Factions.TryGetFactionById(pair.Key) != null)
+                        {
+                            sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        }
                     }
                     break;
                 case "CONS":
                     foreach (KeyValuePair<long, string> pair in NationsPlugin.CONS.factions)
                     {
-                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        if (MySession.Static.Factions.TryGetFactionById(pair.Key) != null)
+                        {
+                            sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        }
                     }
                     break;
                 case "UNIN":
                     foreach (KeyValuePair<long, string> pair in NationsPlugin.UNIN.factions)
                     {
-                        sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        if (MySession.Static.Factions.TryGetFactionById(pair.Key) != null)
+                        {
+                            sb.Append(MySession.Static.Factions.TryGetFactionById(pair.Key).Name + " " + MySession.Static.Factions.TryGetFactionById(pair.Key).Tag + "\n");
+                        }
                     }
                     break;
 

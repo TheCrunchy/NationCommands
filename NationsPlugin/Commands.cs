@@ -87,6 +87,99 @@ namespace NationsPlugin
             }
         }
 
+        public static Dictionary<long, RepRequest> repRequests = new Dictionary<long, RepRequest>();
+
+        [Command("bemyfriend", "send a friend request to a faction")]
+        [Permission(MyPromoteLevel.None)]
+        public void sendRep(string tag)
+        {
+
+            
+                IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(tag);
+                if (fac2 == null)
+                {
+                    Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                    return;
+                }
+                IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            if (fac != null)
+            {
+                if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
+                {
+                    RepRequest reqs;
+                    if (repRequests.ContainsKey(fac.FactionId))
+                    {
+                       repRequests.TryGetValue(fac.FactionId, out RepRequest temp);
+                        reqs = temp;
+                        if (reqs.hasRequest(fac2.Tag))
+                        {
+                            reqs.removeRequest(fac2.Tag);
+                            Context.Respond("Accepting request and Changing reputation!");
+                            //do the friend shit
+                            MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
+                            
+                           // MySession.Static.Factions.DisplayReputationChangeNotification((MySession.Static.Factions.TryGetFactionById(fac.FactionId) as MyFaction).Tag, change.Change);
+                            foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
+                            {
+
+                               
+                              
+                                // MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 999);
+                                    MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 500, true, true);
+                                
+                            }
+                            foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
+                            {
+
+
+
+                             //  MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 999);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 500, true, true);
+
+                            }
+                            repRequests.Remove(fac.FactionId);
+                            repRequests.Add(fac.FactionId, reqs);
+                        }
+                    }
+                    else
+                    {
+                        reqs = new RepRequest();
+                        Context.Respond("Sending a request!");
+                        reqs.addRequest(fac.Tag, 0);
+                        repRequests.Add(fac2.FactionId, reqs);
+                        foreach (MyFactionMember mb in fac2.Members.Values)
+                        {
+
+                            List<ulong> temp = new List<ulong>();
+                            ulong steamid = MySession.Static.Players.TryGetSteamId(mb.PlayerId);
+                            if (temp.Contains(steamid))
+                            {
+                                break;
+                            }
+                            if (steamid == 0)
+                            {
+                                break;
+                            }
+                            SendMessage("[Cronch]", Context.Player.DisplayName + " wishes to be friends with you. To accept use !bemyfriend " + fac.Tag, Color.DarkGreen, (long)steamid);
+                            temp.Add(steamid);
+
+                        }
+                    }
+
+                }
+                else
+                {
+                    Context.Respond("Only leaders and founders can send friend requests.");
+                    return;
+                }
+            }
+            else
+            {
+                Context.Respond("You dont have a faction!");
+            }
+            
+        }
+
         [Command("factionpurge", "Purge factions if all members havent logged on for x days")]
         [Permission(MyPromoteLevel.Admin)]
         public void purgeFactions(int days, Boolean zero = false)
@@ -250,6 +343,17 @@ namespace NationsPlugin
                     if (f.Value.Description != null && f.Value.Tag.Length == 3)
                     {
                         Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(fac.FactionId, f.Value.FactionId);
+                        MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, f.Value.FactionId, 0);
+                        foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
+                        {
+
+                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                            if (rep.Item2 < 0)
+                            {
+                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                            }
+                        }
                     }
                     else
                     {
@@ -991,7 +1095,19 @@ namespace NationsPlugin
            }
             Dictionary<int, String> online = new Dictionary<int, string>();
             StringBuilder sb = new StringBuilder();
+            int max = 0;
             foreach (Player player in Players)
+            {
+                if (player.OnServer > max)
+                {
+                    max = player.OnServer;
+                }
+            }
+            for (int i = 0; i >= max; i++)
+            {
+                online.Add(i, "");
+            }
+                foreach (Player player in Players)
             {
                 IMyFaction fac = FacUtils.GetPlayersFaction(player.IdentityID);
                 if (fac != null && fac.Description != null && fac.Description.Contains(nation)) {
@@ -1011,10 +1127,10 @@ namespace NationsPlugin
 
 
             }
-           
+  
             foreach (KeyValuePair<int, String> pairs in online)
             {
-                sb.Append("Sector " + pairs.Key + " - " + pairs.Value + "\n");
+                sb.Append("\n" + "Sector " + pairs.Key + " - " + pairs.Value + "\n");
             }
             return sb.ToString();
         }
@@ -1022,35 +1138,35 @@ namespace NationsPlugin
         [Permission(MyPromoteLevel.None)]
         public void getonlinenation(string nation = "")
         {
-             if (Context.Player != null)
-          {
+            if (Context.Player != null)
+            {
 
-                    IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
-                    if (playerFac == null)
-                    {
-                        Context.Respond("You dont have a faction.");
-                        return;
-                    }
-
-
-
-                    if (playerFac.Description.Contains("UNIN"))
-                    {
-                        nation = "UNIN";
+                IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
+                if (playerFac == null)
+                {
+                    Context.Respond("You dont have a faction.");
+                    return;
+                }
 
 
-                    }
-                    if (playerFac.Description.Contains("CONS"))
-                    {
-                        nation = "CONS";
+
+                if (playerFac.Description.Contains("UNIN"))
+                {
+                    nation = "UNIN";
 
 
-                    }
-                    if (playerFac.Description.Contains("FEDR"))
-                    {
-                        nation = "FEDR";
+                }
+                if (playerFac.Description.Contains("CONS"))
+                {
+                    nation = "CONS";
 
-                    }
+
+                }
+                if (playerFac.Description.Contains("FEDR"))
+                {
+                    nation = "FEDR";
+
+                }
                 MyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(nation);
                 if (fac2 == null)
                 {
@@ -1076,10 +1192,10 @@ namespace NationsPlugin
                     DialogMessage m = new DialogMessage("Online members", nation, getOnline(nation));
                     ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
                 }
-                }
-                else
-                {
-                    Context.Respond(getOnline(nation));
+            }
+            else
+            {
+                Context.Respond(getOnline(nation));
 
             }
         }

@@ -8,6 +8,8 @@ namespace NationsPlugin
 {
    public class RepRequest
     {
+
+        //i wrote this with the intention to do specific amounts of rep but that shit didnt work out well
         public Dictionary<String, int> requests = new Dictionary<string, int>();
 
         public void addRequest(String tag, int amount)
@@ -17,6 +19,18 @@ namespace NationsPlugin
                 requests.Remove(tag);
             }
             requests.Add(tag, amount);
+        }
+
+        public Boolean hasRequest(string tag)
+        {
+            if (requests.ContainsKey(tag))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public int getRequestAmount(String tag)

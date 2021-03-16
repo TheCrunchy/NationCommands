@@ -27,6 +27,7 @@ using Torch.Mod.Messages;
 using VRage.Game;
 using VRage.Game.Factions.Definitions;
 using VRage.Game.ModAPI;
+using VRage.Network;
 using VRage.ObjectBuilders;
 using VRageMath;
 using static Sandbox.Game.Multiplayer.MyFactionCollection;
@@ -89,96 +90,7 @@ namespace NationsPlugin
 
         public static Dictionary<long, RepRequest> repRequests = new Dictionary<long, RepRequest>();
 
-        [Command("bemyfriend", "send a friend request to a faction")]
-        [Permission(MyPromoteLevel.None)]
-        public void sendRep(string tag)
-        {
-
-            
-                IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(tag);
-                if (fac2 == null)
-                {
-                    Context.Respond("Cant find that faction.", Color.Red, "The Government");
-                    return;
-                }
-                IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
-            if (fac != null)
-            {
-                if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
-                {
-                    RepRequest reqs;
-                    if (repRequests.ContainsKey(fac.FactionId))
-                    {
-                       repRequests.TryGetValue(fac.FactionId, out RepRequest temp);
-                        reqs = temp;
-                        if (reqs.hasRequest(fac2.Tag))
-                        {
-                            reqs.removeRequest(fac2.Tag);
-                            Context.Respond("Accepting request and Changing reputation!");
-                            //do the friend shit
-                            MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
-                            
-                           // MySession.Static.Factions.DisplayReputationChangeNotification((MySession.Static.Factions.TryGetFactionById(fac.FactionId) as MyFaction).Tag, change.Change);
-                            foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
-                            {
-
-                               
-                              
-                                // MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 999);
-                                    MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 500, true, true);
-                                
-                            }
-                            foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
-                            {
-
-
-
-                             //  MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 999);
-                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 500, true, true);
-
-                            }
-                            repRequests.Remove(fac.FactionId);
-                            repRequests.Add(fac.FactionId, reqs);
-                        }
-                    }
-                    else
-                    {
-                        reqs = new RepRequest();
-                        Context.Respond("Sending a request!");
-                        reqs.addRequest(fac.Tag, 0);
-                        repRequests.Add(fac2.FactionId, reqs);
-                        foreach (MyFactionMember mb in fac2.Members.Values)
-                        {
-
-                            List<ulong> temp = new List<ulong>();
-                            ulong steamid = MySession.Static.Players.TryGetSteamId(mb.PlayerId);
-                            if (temp.Contains(steamid))
-                            {
-                                break;
-                            }
-                            if (steamid == 0)
-                            {
-                                break;
-                            }
-                            SendMessage("[Cronch]", Context.Player.DisplayName + " wishes to be friends with you. To accept use !bemyfriend " + fac.Tag, Color.DarkGreen, (long)steamid);
-                            temp.Add(steamid);
-
-                        }
-                    }
-
-                }
-                else
-                {
-                    Context.Respond("Only leaders and founders can send friend requests.");
-                    return;
-                }
-            }
-            else
-            {
-                Context.Respond("You dont have a faction!");
-            }
-            
-        }
+       
 
         [Command("factionpurge", "Purge factions if all members havent logged on for x days")]
         [Permission(MyPromoteLevel.Admin)]
@@ -334,9 +246,35 @@ namespace NationsPlugin
 
 
             }
-
-
+            Dictionary<long, Dictionary<long, int>> reps = new Dictionary<long, Dictionary<long, int>>();
             foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+                if (f.Value != fac)
+                {
+                    if (f.Value.Tag.Length == 4)
+                    {
+                        foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
+                        {
+                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                            
+                            if (reps.TryGetValue(m.Value.PlayerId, out Dictionary<long, int> tempreps))
+                            {
+                                tempreps.Add(f.Value.FactionId, rep.Item2);
+                                reps.Remove(m.Value.PlayerId);
+                                reps.Add(m.Value.PlayerId, tempreps);
+                            }
+                          else
+                            {
+                                Dictionary<long, int> tempreps2 = new Dictionary<long, int>();
+                                tempreps2.Add(f.Value.FactionId, rep.Item2);
+                           
+                                reps.Add(m.Value.PlayerId, tempreps2);
+                            }
+                        }
+                    }
+                }
+            }
+                foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
             {
                 if (f.Value != fac)
                 {
@@ -362,10 +300,21 @@ namespace NationsPlugin
                 }
             }
             Context.Respond("That faction has now declared war on all factions");
-
-
+      
+                foreach (KeyValuePair<long,Dictionary<long, int>> playerFucks in reps)
+                {
+                foreach (KeyValuePair<long, int> ff in playerFucks.Value)
+                {
+                   
+                    MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(playerFucks.Key, ff.Key, ff.Value);
+              
+                }
+               
+            }
+            
 
         }
+
         public static string GetStringBetweenCharacters(string input, char charFrom, char charTo)
         {
             int posFrom = input.IndexOf(charFrom);
@@ -1134,6 +1083,131 @@ namespace NationsPlugin
             }
             return sb.ToString();
         }
+
+        [Command("friend", "send a friend request to a faction")]
+        [Permission(MyPromoteLevel.None)]
+        public void sendRep(string factionTag)
+        {
+
+
+            IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag(factionTag);
+            if (fac2 == null)
+            {
+                Context.Respond("Cant find that faction.", Color.Red, "The Government");
+                return;
+            }
+            IMyFaction fac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            if (fac != null)
+            {
+                if (fac.IsLeader(Context.Player.IdentityId) || fac.IsFounder(Context.Player.IdentityId))
+                {
+                    RepRequest reqs;
+                    if (repRequests.ContainsKey(fac.FactionId))
+                    {
+                        repRequests.TryGetValue(fac.FactionId, out RepRequest temp);
+                        reqs = temp;
+                        if (reqs.hasRequest(fac2.Tag))
+                        {
+                            reqs.removeRequest(fac2.Tag);
+                            Context.Respond("Accepting request, becoming peaceful, and Changing reputation!, relog may be required to see effects.");
+                            //do the friend shit
+                        
+
+                          // MySession.Static.Factions.DisplayReputationChangeNotification((MySession.Static.Factions.TryGetFactionById(fac.FactionId) as MyFaction).Tag, change.Change);
+
+                     
+
+                            MyFactionPeaceRequestState state = MySession.Static.Factions.GetRequestState(fac.FactionId, fac2.FactionId);
+
+
+                            if (state == MyFactionPeaceRequestState.Pending || state == MyFactionPeaceRequestState.Sent)
+                            {
+                                Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(fac.FactionId, fac2.FactionId);
+                            }
+                            MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
+                            foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
+                            {
+
+
+                           //    MyFactionStateChange request1;
+                             //  request1 = MyFactionStateChange.SendFriendRequest;
+
+                             //   MyFactionStateChange request2;
+                             //  request2 = MyFactionStateChange.AcceptFriendRequest;
+                                   MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
+                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 1, true, true);
+
+                               // MyMultiplayer.RaiseEvent<MyFactionStateChange, long, long, long, long>(fac2.FactionId, fac.FactionId, Context.Player.IdentityId, this.Sender, new EndpointId(), new Vector3D?());
+                                //  NationsPlugin.SetupFriendRequests();
+                              //   object[] MethodInput = new object[] { request1, fac.FactionId, fac2.FactionId, m.Value.PlayerId};
+                             //    object[] MethodInput2 = new object[] { request2, fac2.FactionId, fac.FactionId, m.Value.PlayerId };
+                           //     NationsPlugin.FriendRequests.Invoke(null, MethodInput);
+                            //     NationsPlugin.FriendRequests.Invoke(null, MethodInput2);
+                                //     Action<MyFactionStateChange, long, long, long, long> factionStateChanged;
+
+
+
+                            }
+                            foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
+                            {
+
+
+
+                               MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 1, true, true);
+
+                            }
+                     
+                            repRequests.Remove(fac.FactionId);
+                            repRequests.Add(fac.FactionId, reqs);
+                        }
+                    }
+                    else
+                    {
+                        reqs = new RepRequest();
+                        Context.Respond("Sending a request!");
+                        reqs.addRequest(fac.Tag, 0);
+                        MyFactionPeaceRequestState state = MySession.Static.Factions.GetRequestState(fac.FactionId, fac2.FactionId);
+                    
+
+                        if (state != MyFactionPeaceRequestState.Sent)
+                        {
+                            Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(fac.FactionId, fac2.FactionId);
+                        }
+                        repRequests.Remove(fac2.FactionId);
+                        repRequests.Add(fac2.FactionId, reqs);
+                        foreach (MyFactionMember mb in fac2.Members.Values)
+                        {
+
+
+                            ulong steamid = MySession.Static.Players.TryGetSteamId(mb.PlayerId);
+
+                            if (steamid == 0)
+                            {
+                                break;
+                            }
+                            SendMessage("Friend Request", Context.Player.DisplayName + " wishes to be friends with you, if you accept this will set you to at peace and make them untargetable by weaponcore.", Color.DarkGreen, (long)steamid);
+                            SendMessage("Friend Request", " To accept use !friend " + fac.Tag, Color.DarkGreen, (long)steamid);
+
+
+
+                        }
+                    }
+
+                }
+                else
+                {
+                    Context.Respond("Only leaders and founders can send friend requests.");
+                    return;
+                }
+            }
+            else
+            {
+                Context.Respond("You dont have a faction!");
+            }
+
+        }
+
         [Command("nation online", "online members")]
         [Permission(MyPromoteLevel.None)]
         public void getonlinenation(string nation = "")
@@ -1610,6 +1684,9 @@ namespace NationsPlugin
                 }
             }
         }
+
+       
+
         [Command("nation join", "Join a nation")]
         [Permission(MyPromoteLevel.None)]
         public void massjoin(string tag)

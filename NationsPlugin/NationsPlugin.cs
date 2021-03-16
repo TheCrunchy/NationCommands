@@ -128,6 +128,30 @@ namespace NationsPlugin
             }
             return false;
         }
+        public static MethodInfo FriendRequests;
+        public static Boolean friendReqs;
+        public static bool SetupFriendRequests()
+        {
+
+  
+
+     
+
+                try
+                {
+                friendReqs = true;
+                    Type ReflectedServerSideAPI2 = MySession.Static.Factions.GetType();
+                    FriendRequests = ReflectedServerSideAPI2?.GetMethod("SendFactionChange", BindingFlags.NonPublic | BindingFlags.Static);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+            
+                    return false;
+                }
+            
+
+        }
         public static bool SetupMethod()
         {
             var pluginManager = torchbase.CurrentSession.Managers.GetManager<PluginManager>();
@@ -310,7 +334,7 @@ namespace NationsPlugin
                 // SaveWhitelist("UNIN", UNIN);
                 TorchState = TorchSessionState.Loaded;
                 SetupMethod();
-
+               /// SetupFriendRequests();
                 _chatmanager = Torch.CurrentSession.Managers.GetManager<ChatManagerServer>();
                 if (_chatmanager == null)
                 {
@@ -318,7 +342,7 @@ namespace NationsPlugin
                 }
                 else
                 {
-                    _chatmanager.MessageProcessing += MessageRecieved;
+                 _chatmanager.MessageProcessing += MessageRecieved;
                    session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += test;
                 }
             }

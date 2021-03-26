@@ -285,8 +285,8 @@ namespace NationsPlugin
                 if (f.Value.Tag.Length > 3)
                 {
                     if (f.Value.Tag.Equals("arrr"))
-                    {
-                   
+                    { 
+
                        if (FacUtils.GetPlayersFaction(id.IdentityId) != null)
                         {
                             Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(FacUtils.GetPlayersFaction(id.IdentityId).FactionId, f.Value.FactionId);
@@ -295,20 +295,20 @@ namespace NationsPlugin
                         MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, -1000);
                         MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, f.Value.FactionId, 1, true, true);
                     }
-                    else
-                    {
-                        if (!f.Value.Tag.Equals("SPRT") && !f.Value.Tag.Equals("MERC") && !f.Value.Tag.Equals("EROR") && !f.Value.Tag.Equals("MEOW") && !f.Value.Tag.Equals("GAIA"))
-                        {
-                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId);
+                    //else
+                    //{
+                    //    if (!f.Value.Tag.Equals("SPRT") && !f.Value.Tag.Equals("MERC") && !f.Value.Tag.Equals("EROR") && !f.Value.Tag.Equals("MEOW") && !f.Value.Tag.Equals("GAIA"))
+                    //    {
+                    //        System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId);
                             
-                            if (rep.Item2 < 0)
-                            {
+                    //        if (rep.Item2 < 0)
+                    //        {
                                
-                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, 0);
-                                MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, f.Value.FactionId, 0, true, true);
-                            }
-                        }
-                    }
+                    //            MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, 0);
+                    //            MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, f.Value.FactionId, 0, true, true);
+                    //        }
+                    //    }
+                    //}
                 }
             }
             MyFaction ACME = MySession.Static.Factions.TryGetFactionByTag("ACME");

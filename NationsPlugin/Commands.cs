@@ -198,8 +198,29 @@ namespace NationsPlugin
         }
         private static MethodInfo _factionChangeSuccessInfo = typeof(MyFactionCollection).GetMethod("FactionStateChangeSuccess", BindingFlags.NonPublic | BindingFlags.Static);
 
-
-
+        [Command("crunchfuckup", "declare war on everyone")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void makeeveryoneanenemywiththesefacs()
+        {
+            IMyFaction fac1 = MySession.Static.Factions.TryGetFactionByTag("????");
+            IMyFaction fac2 = MySession.Static.Factions.TryGetFactionByTag("WOLF");
+            IMyFaction fac3 = MySession.Static.Factions.TryGetFactionByTag("arrr");
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+                if (f.Value != fac1 && f.Value != fac2 && f.Value != fac3)
+                {
+                    Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(f.Value.FactionId, fac1.FactionId);
+                    Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(f.Value.FactionId, fac2.FactionId);
+                    Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(f.Value.FactionId, fac3.FactionId);
+                    foreach (KeyValuePair<long, MyFactionMember> m in f.Value.Members)
+                    {
+                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac1.FactionId, -1000);
+                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, -1000);
+                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac3.FactionId, -1000);
+                    }
+                }
+            }
+        }
         [Command("stripalliances", "declare war on everyone")]
         [Permission(MyPromoteLevel.Admin)]
         public void declarewaronall(string tag)
@@ -1270,6 +1291,48 @@ namespace NationsPlugin
             else
             {
                 Context.Respond(getOnline(nation));
+
+            }
+        }
+
+
+        [Command("admindistress", "admindistress signals")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void admindistress(string name, string reason = "")
+        {
+
+
+            if (Context.Player == null)
+            {
+                Context.Respond("no no console no distress");
+                return;
+            }
+
+
+            MyGps gps = CreateGps(Context.Player.Character.PositionComp.GetPosition(), new Color(NationsPlugin.file.adminDistressRed, NationsPlugin.file.adminDistressGreen, NationsPlugin.file.AdminDistressBlue), 600, name, reason);
+            MyGps gpsRef = gps;
+            long entityId = 0L;
+            entityId = gps.EntityId;
+
+            MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
+            {
+
+
+
+
+             
+
+                            gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                            NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+                            SendMessage(NationsPlugin.file.AdminDistressName, NationsPlugin.file.AdminDistressMessage, Color.Red, (long)p.Id.SteamId);
+                        
+                    
+
+
+
+
+                
 
             }
         }

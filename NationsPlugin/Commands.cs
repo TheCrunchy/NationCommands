@@ -1298,7 +1298,7 @@ namespace NationsPlugin
 
         [Command("admindistress", "admindistress signals")]
         [Permission(MyPromoteLevel.Admin)]
-        public void admindistress(string name, string reason = "")
+        public void admindistress(string name, string messagename = "", string message = "")
         {
 
 
@@ -1308,8 +1308,15 @@ namespace NationsPlugin
                 return;
             }
 
-
-            MyGps gps = CreateGps(Context.Player.Character.PositionComp.GetPosition(), new Color(NationsPlugin.file.adminDistressRed, NationsPlugin.file.adminDistressGreen, NationsPlugin.file.AdminDistressBlue), 600, name, reason);
+            if (messagename.Equals(""))
+            {
+                messagename = NationsPlugin.file.AdminDistressName;
+            }
+            if (message.Equals(""))
+            {
+                message = NationsPlugin.file.AdminDistressMessage;
+            }
+            MyGps gps = CreateGps(Context.Player.Character.PositionComp.GetPosition(), new Color(NationsPlugin.file.adminDistressRed, NationsPlugin.file.adminDistressGreen, NationsPlugin.file.AdminDistressBlue), 600, name, "");
             MyGps gpsRef = gps;
             long entityId = 0L;
             entityId = gps.EntityId;
@@ -1325,7 +1332,7 @@ namespace NationsPlugin
 
                             gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
                             NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
-                            SendMessage(NationsPlugin.file.AdminDistressName, NationsPlugin.file.AdminDistressMessage, Color.Red, (long)p.Id.SteamId);
+                            SendMessage(messagename, message, Color.Red, (long)p.Id.SteamId);
                         
                     
 

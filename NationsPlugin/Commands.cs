@@ -1324,23 +1324,9 @@ namespace NationsPlugin
             MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
             {
-
-
-
-
-             
-
-                            gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
-                            NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
-                            SendMessage(messagename, message, Color.Red, (long)p.Id.SteamId);
-                        
-                    
-
-
-
-
-                
-
+             gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                           // NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+             SendMessage(messagename, message, Color.Red, (long)p.Id.SteamId);
             }
         }
 

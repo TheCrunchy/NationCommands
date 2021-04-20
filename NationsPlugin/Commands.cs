@@ -5,6 +5,7 @@ using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.GameSystems;
+using Sandbox.Game.GameSystems.BankingAndCurrency;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.Screens.Models;
@@ -90,7 +91,7 @@ namespace NationsPlugin
 
         public static Dictionary<long, RepRequest> repRequests = new Dictionary<long, RepRequest>();
 
-       
+
 
         [Command("factionpurge", "Purge factions if all members havent logged on for x days")]
         [Permission(MyPromoteLevel.Admin)]
@@ -98,30 +99,15 @@ namespace NationsPlugin
         {
             if (days == 0 && !zero)
             {
-                Context.Respond("Are you sure? this probably isnt a good idea, attach true to end of command.");
+                Context.Respond("Are you sure you want to purge everyone from every faction? this probably isnt a good idea, attach true to end of command.");
                 return;
             }
-            int purgedFactions;
+            int purgedFactions = 0;
             var cutoff = DateTime.Now - TimeSpan.FromDays(days);
             List<MyFaction> purging = new List<MyFaction>();
             //rewrite this shit entirely
             foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
             {
-                bool purged = true;
-                bool npc = false;
-                bool isPurging = true;
-                //bool notPurging = false;
-
-
-                //if (f.Value.Members.Count > 0)
-                //{
-
-                //}
-                //else
-                //{
-                //    purging.Add(f.Value);
-                //    break;
-                //}
                 if (f.Value.Tag.Length > 3)
                 {
                     //breaking here fucks up everything 
@@ -133,67 +119,19 @@ namespace NationsPlugin
                     {
                         //do this shit
 
-                        MyIdentity test = MySession.Static.Players.TryGetIdentity(m.Key);
+                        MyIdentity test = MySession.Static.Players.TryGetIdentity(m.Value.PlayerId);
 
-
-                        if (test != null && MySession.Static.Players.IdentityIsNpc(test.IdentityId))
+                        if (test != null && !MySession.Static.Players.IdentityIsNpc(test.IdentityId) && test.LastLoginTime < cutoff)
                         {
-                            purged = false;
-                            npc = true;
-                            if (purging.Contains(f.Value))
-                            {
-                                purging.Remove(f.Value);
-                            }
-
-                        }
-                        if (test != null && test.DisplayName != null && test.LastLoginTime < cutoff && isPurging && !npc)
-                        {
-                            //debug messages
-
-                            purged = true;
-
-                        }
-                        else
-                        {
-                            purged = false;
-                            if (purging.Contains(f.Value))
-                            {
-                                purging.Remove(f.Value);
-                            }
-
-                            isPurging = false;
-
-
-                        }
-                    }
-                    if (purged)
-                    {
-
-                        purging.Add(f.Value);
-                        List<long> kick = new List<long>();
-                        foreach (KeyValuePair<long, MyFactionMember> m in f.Value.Members)
-                        {
-                            kick.Add(m.Key);
-
-                        }
-                        foreach (long n in kick)
-                        {
-                            f.Value.KickMember(n);
+                            f.Value.KickMember(m.Value.PlayerId, true);
+                            purgedFactions++;
                         }
                     }
 
                 }
-            }
-            Context.Respond("Purged " + purging.Count);
-            foreach (MyFaction f in purging)
-            {
-                //add this to a logger
-                NationsPlugin.Log.Info("Purging " + f.Name + "## TAG : " + f.Tag);
 
-                NetworkManager.RaiseStaticEvent(_factionChangeSuccessInfo, MyFactionStateChange.RemoveFaction, f.FactionId, f.FactionId, 0L, 0L);
-                if (!MyAPIGateway.Session.Factions.FactionTagExists(f.Tag)) break;
-                MyAPIGateway.Session.Factions.RemoveFaction(f.FactionId);
             }
+            Context.Respond("Purged " + purgedFactions + " members from factions");
 
         }
         private static MethodInfo _factionChangeSuccessInfo = typeof(MyFactionCollection).GetMethod("FactionStateChangeSuccess", BindingFlags.NonPublic | BindingFlags.Static);
@@ -1478,6 +1416,7 @@ namespace NationsPlugin
             MyGps gps = CreateGps(Position, new Color(NationsPlugin.file.red, NationsPlugin.file.green, NationsPlugin.file.blue), 300, nation, reason);
 
                NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+               NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
          
             MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
@@ -1604,6 +1543,85 @@ namespace NationsPlugin
             ScriptedChatMsg scriptedChatMsg2 = scriptedChatMsg1;
             MyMultiplayerBase.SendScriptedChatMessage(ref scriptedChatMsg2);
         }
+        [Command("crunch", "crunch testing thing")]
+        [Permission(MyPromoteLevel.None)]
+        public void testCrunch()
+        {
+            if (Context.Player.PromoteLevel == MyPromoteLevel.Admin || Context.Player.SteamUserId == 76561198045390854)
+            {
+                NationsPlugin.CRUNCH();
+            }
+        }
+
+        [Command("dividend", "give money to members of a nation")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void scan(string nation, string inputAmount)
+        {
+            int count = 0;
+            StringBuilder response = new StringBuilder();
+            List<long> payTheseFucks = new List<long>();
+            Int64 amount;
+            inputAmount = inputAmount.Replace(",", "");
+            inputAmount = inputAmount.Replace(".", "");
+            inputAmount = inputAmount.Replace(" ", "");
+            try
+            {
+                amount = Int64.Parse(inputAmount);
+            }
+            catch (Exception)
+            {
+                Context.Respond("Error parsing number");
+                return;
+            }
+            if (amount < 0 || amount == 0)
+            {
+                Context.Respond("Input must be positive");
+                return;
+            }
+            var cutoff = DateTime.Now - TimeSpan.FromDays(10);
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
+
+                if (f.Value.Description != null)
+                {
+                    //if (NationsPlugin.file.doWhitelist)
+                    //{
+                    //    IMyFaction nationfac = MySession.Static.Factions.TryGetFactionByTag(nation);
+
+                    //    if (nationfac != null && f.Value.Description.Contains(nation.ToUpper()) && nationfac.Description != null && nationfac.Description.Contains("[" + f.Value.Tag.ToUpper() + "]"))
+                    //    {
+                    //        count += f.Value.Members.Count;
+                    //        response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
+                    //    }
+                    //}
+                    //else
+                    {
+                        if (f.Value.Description.Contains(nation.ToUpper()))
+                        {
+                            foreach (KeyValuePair<long, MyFactionMember> mem in f.Value.Members)
+                            {
+                                MyIdentity id = MySession.Static.Players.TryGetIdentity(mem.Value.PlayerId);
+                               
+                                if (MySession.Static.Players.TryGetIdentity(mem.Value.PlayerId).LastLoginTime >= cutoff)
+                                {
+                                    payTheseFucks.Add(mem.Value.PlayerId);
+                                    
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+            }
+            long amountToPay = amount * payTheseFucks.Count();
+            foreach (long id in payTheseFucks)
+            {
+                MyBankingSystem.ChangeBalance(id, amount);
+            }
+            Context.Respond("Paid out " + String.Format("{0:n0}", amount) + " SC to each member");
+
+        }
+
         [Command("nation list", "scan descriptions for nation")]
         [Permission(MyPromoteLevel.Admin)]
         public void scan(string nation)

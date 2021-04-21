@@ -281,38 +281,15 @@ namespace NationsPlugin
             {
                 return;
             }
-            
-            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            MyFaction arrr = MySession.Static.Factions.TryGetFactionByTag("arrr");
+            if (arrr != null)
             {
-                if (f.Value.Tag.Length > 3)
+                if (FacUtils.GetPlayersFaction(id.IdentityId) != null && !MySession.Static.Factions.AreFactionsEnemies(arrr.FactionId, FacUtils.GetPlayersFaction(id.IdentityId).FactionId))
                 {
-                    if (f.Value.Tag.Equals("arrr"))
-                    {
-
-                        if (FacUtils.GetPlayersFaction(id.IdentityId) != null)
-                        {
-                            Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(FacUtils.GetPlayersFaction(id.IdentityId).FactionId, f.Value.FactionId);
-
-                        }
-                      //  MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, -1000);
-                      
-                    }
-                    //else
-                    //{
-                    //    if (!f.Value.Tag.Equals("SPRT") && !f.Value.Tag.Equals("MERC") && !f.Value.Tag.Equals("EROR") && !f.Value.Tag.Equals("MEOW") && !f.Value.Tag.Equals("GAIA"))
-                    //    {
-                    //        System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId);
-
-                    //        if (rep.Item2 < 0)
-                    //        {
-
-                    //            MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, f.Value.FactionId, 0);
-                    //            MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, f.Value.FactionId, 0, true, true);
-                    //        }
-                    //    }
-                    //}
+                    Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(FacUtils.GetPlayersFaction(id.IdentityId).FactionId, arrr.FactionId);
                 }
             }
+
             MyFaction ACME = MySession.Static.Factions.TryGetFactionByTag("ACME");
             IMyFaction playerFac = MySession.Static.Factions.GetPlayerFaction(id.IdentityId);
             MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, ACME.FactionId, 0);
@@ -333,36 +310,18 @@ namespace NationsPlugin
                     {
                         if (nationtag != null)
                         {
-
-                            //MyFactionPeaceRequestState state;
-                            //state = MySession.Static.Factions.GetRequestState(playerFac.FactionId, UNINAM.FactionId);
-
-                            //if (state != MyFactionPeaceRequestState.Sent)
-                            //{
-                            //    
-
-
-                            //}
-                            //if (state == MyFactionPeaceRequestState.Pending)
-                            //{
-                            //  
-                            //}
                             switch (nationtag)
                             {
                                 case "UNIN":
-                                //    Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, UNINAM.FactionId);
-                               //     Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, UNINAM.FactionId);
                                     MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, UNINAM.FactionId, 1500);
-                                 //   MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, UNINAM.FactionId, 1500);
+                                    MySession.Static.Factions.SetReputationBetweenFactions(UNINAM.FactionId, playerFac.FactionId, 1500);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, FEDRAM.FactionId);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, CONSAM.FactionId);
 
                                     return;
                                 case "FEDR":
-                                 //   Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, FEDRAM.FactionId);
-                                //    Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, FEDRAM.FactionId);
-                                  //  MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, FEDRAM.FactionId, 1500);
                                     MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, FEDRAM.FactionId, 1500);
+                                    MySession.Static.Factions.SetReputationBetweenFactions(FEDRAM.FactionId, playerFac.FactionId, 1500);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, UNINAM.FactionId);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, CONSAM.FactionId);
 
@@ -372,6 +331,7 @@ namespace NationsPlugin
                                //    Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, CONSAM.FactionId);
                                   //  MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, CONSAM.FactionId, 1500);
                                     MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, CONSAM.FactionId, 1500);
+                                    MySession.Static.Factions.SetReputationBetweenFactions(CONSAM.FactionId, playerFac.FactionId, 1500);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, UNINAM.FactionId);
                                     MyFactionCollection.DeclareWar(playerFac.FactionId, FEDRAM.FactionId);
 

@@ -321,7 +321,7 @@ namespace NationsPlugin
                             if (rep.Item2 < 0)
                             {
                                 MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                             }
                         }
                     }
@@ -1160,12 +1160,12 @@ namespace NationsPlugin
                             foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
                             {
                                    MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
-                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 1, true, true);
+                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 0, true, true);
                             }
                             foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
                             {
                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
-                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 1, true, true);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 0, true, true);
 
                             }
                      
@@ -1468,7 +1468,7 @@ namespace NationsPlugin
             MyGps gps = CreateGps(Position, new Color(NationsPlugin.file.red, NationsPlugin.file.green, NationsPlugin.file.blue), 300, nation, reason);
 
                NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
-               NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+    
          
             MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())

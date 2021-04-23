@@ -45,7 +45,8 @@
     <Reference Include="Sandbox.Common">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Sandbox.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Sandbox.Game">
+    <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Sandbox.Game.dll</HintPath>
     </Reference>
     <Reference Include="System" />

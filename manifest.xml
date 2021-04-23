@@ -2,5 +2,5 @@
 <PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>NationsPlugin</Name>
   <Guid>1ad34434-ee54-445b-8951-03693cd83976</Guid>
-  <Version>v1.0.118</Version>
+  <Version>v1.0.121</Version>
 </PluginManifest>

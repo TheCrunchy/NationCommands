@@ -9,6 +9,7 @@ namespace NationsPlugin
 {
     public class ConfigFile : ViewModel
     {
+        public Boolean RepLogging = false;
         public Boolean ReputationPatch = true;
         public Int64 Price = 1000000;
         public string Name = "The Government";

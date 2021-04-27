@@ -285,50 +285,33 @@ namespace NationsPlugin
                 {
                     if (f.Value.Tag.Length == 4)
                     {
-                        foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
-                        {
-                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                        //foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
+                        //{
+                        //    System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
                             
-                            if (reps.TryGetValue(m.Value.PlayerId, out Dictionary<long, int> tempreps))
-                            {
-                                tempreps.Add(f.Value.FactionId, rep.Item2);
-                                reps.Remove(m.Value.PlayerId);
-                                reps.Add(m.Value.PlayerId, tempreps);
-                            }
-                          else
-                            {
-                                Dictionary<long, int> tempreps2 = new Dictionary<long, int>();
-                                tempreps2.Add(f.Value.FactionId, rep.Item2);
+                        //    if (reps.TryGetValue(m.Value.PlayerId, out Dictionary<long, int> tempreps))
+                        //    {
+                        //        tempreps.Add(f.Value.FactionId, rep.Item2);
+                        //        reps.Remove(m.Value.PlayerId);
+                        //        reps.Add(m.Value.PlayerId, tempreps);
+                        //    }
+                        //  else
+                        //    {
+                        //        Dictionary<long, int> tempreps2 = new Dictionary<long, int>();
+                        //        tempreps2.Add(f.Value.FactionId, rep.Item2);
                            
-                                reps.Add(m.Value.PlayerId, tempreps2);
-                            }
-                        }
-                    }
-                }
-            }
-                foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
-            {
-                if (f.Value != fac)
-                {
-                    if (f.Value.Description != null && f.Value.Tag.Length == 3)
-                    {
-                        Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(fac.FactionId, f.Value.FactionId);
-                        MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, f.Value.FactionId, 0);
-                        foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
-                        {
-
-                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
-                            if (rep.Item2 < 0)
-                            {
-                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
-                            }
-                        }
+                        //        reps.Add(m.Value.PlayerId, tempreps2);
+                        //    }
+                        //}
                     }
                     else
                     {
+                        if (!MySession.Static.Factions.AreFactionsEnemies(fac.FactionId, f.Value.FactionId))
+                        {
+                            Sandbox.Game.Multiplayer.MyFactionCollection.DeclareWar(fac.FactionId, f.Value.FactionId);
+                            MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, f.Value.FactionId, -3000);
+                        }
                     }
-
                 }
             }
             Context.Respond("That faction has now declared war on all factions");
@@ -1159,12 +1142,13 @@ namespace NationsPlugin
                             MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
                             foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
                             {
-                                   MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
+                                   MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
                                  MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 0, true, true);
                             }
                             foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
                             {
-                               MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 1);
+                               MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
+
                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 0, true, true);
 
                             }
@@ -1967,7 +1951,7 @@ namespace NationsPlugin
                                                     if (rep.Item2 < 0)
                                                     {
                                                         MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                     }
                                                 }
                                             }
@@ -1981,7 +1965,7 @@ namespace NationsPlugin
                                                     if (rep.Item2 < 0)
                                                     {
                                                         MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                        MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                     }
                                                 }
                                             }
@@ -2008,7 +1992,7 @@ namespace NationsPlugin
                                                 if (rep.Item2 < 0)
                                                 {
                                                     MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                                    MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                    MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                 }
                                             }
                                         }
@@ -2023,7 +2007,7 @@ namespace NationsPlugin
                                            if (rep.Item2 < 0)
                                             {
                                                 MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
-                                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 1, true, true);
+                                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                             }
                                            
                                         }

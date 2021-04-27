@@ -92,68 +92,9 @@ namespace NationsPlugin
 
         public static MethodInfo GetOnlinePlayers;
 
-
-        public static MethodInfo SendGlobalMessage;
-        public static bool SetupGlobal()
-        {
-
-            var pluginManager = torchbase.CurrentSession.Managers.GetManager<PluginManager>();
-            var pluginId = new Guid("28a12184-0422-43ba-a6e6-2e228611cca5");
-
-            if (pluginManager.Plugins.TryGetValue(pluginId, out ITorchPlugin nexus))
-            {
-
-                try
-                {
-                    Type ReflectedServerSideAPI2 = nexus.GetType().Assembly.GetType("ServerNetwork.Sync.ChatSync");
-                    SendGlobalMessage = ReflectedServerSideAPI2?.GetMethod("BroadcastScriptedChatMessage", BindingFlags.Public | BindingFlags.Static);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
-                    {
-                        MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
-                        SendMessage("CRUNCH", ex.ToString(), Color.Blue, (long)player.Id.SteamId);
-                    }
-                    NationsPlugin.Log.Error(ex, "");
-                    return false;
-                }
-            }
-            else
-            {
-                if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
-                {
-                    MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
-                    SendMessage("CRUNCH", "SHIT NO WORK", Color.Blue, (long)player.Id.SteamId);
-                }
-            }
-            return false;
-        }
         public static MethodInfo FriendRequests;
         public static Boolean friendReqs;
-        public static bool SetupFriendRequests()
-        {
 
-
-
-
-
-            try
-            {
-                friendReqs = true;
-                Type ReflectedServerSideAPI2 = MySession.Static.Factions.GetType();
-                FriendRequests = ReflectedServerSideAPI2?.GetMethod("SendFactionChange", BindingFlags.NonPublic | BindingFlags.Static);
-                return true;
-            }
-            catch (Exception ex)
-            {
-
-                return false;
-            }
-
-
-        }
         public static bool SetupMethod()
         {
             var pluginManager = torchbase.CurrentSession.Managers.GetManager<PluginManager>();
@@ -572,27 +513,6 @@ namespace NationsPlugin
     public static bool bob = false;
     private void MessageRecieved(TorchChatMessage msg, ref bool consumed)
     {
-        if (bob && msg.AuthorSteamId == 76561198045390854)
-        {
-            try
-            {
-                NationsPlugin.SetupGlobal();
-                ChatSyncMessage chat = new ChatSyncMessage(msg.Author, msg.AuthorSteamId.Value, (int)msg.Channel, msg.Font, "Crunch testing, DO YOU SEE THIS?", msg.Target);
-                object[] MethodInput = new object[] { SubsriptionType.MessageType.Chat, chat, 0 };
-                NationsPlugin.SendGlobalMessage?.Invoke(null, MethodInput);
-                MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
-                SendMessage("FUCK?", "FUCK", Color.Blue, (long)player.Id.SteamId);
-            }
-            catch (Exception ex)
-            {
-                if (MySession.Static.Players.GetPlayerByName("Crunch") != null)
-                {
-                    MyPlayer player = MySession.Static.Players.GetPlayerByName("Crunch");
-                    SendMessage("CRUNCH", ex.ToString(), Color.Blue, (long)player.Id.SteamId);
-                }
-                return;
-            }
-        }
 
         if (playersInNationChat.Contains((long)msg.AuthorSteamId))
         {

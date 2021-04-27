@@ -47,12 +47,18 @@ throw new Exception("Failed to find patch method");
       bool propagate = true,
       bool adminChange = false)
         {
-            NationsPlugin.Log.Info("Reputation logging - AddFactionPlayerRep -- Player: " + playerIdentityId + " faction:" + factionId + " amount:" + delta);
+            if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
+            {
+                NationsPlugin.Log.Info("Reputation logging - AddFactionPlayerRep -- Player: " + playerIdentityId + " faction:" + factionId + " amount:" + delta);
+            }
         }
 
         public static void Log2(long fromPlayerId, long toFactionId, int reputation)
         {
-            NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " amount:" + reputation);
+            if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
+            {
+                NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " amount:" + reputation);
+            }
         }
         public static Boolean DamageFactionPlayerReputation(
    long playerIdentityId,

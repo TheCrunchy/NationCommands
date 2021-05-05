@@ -57,21 +57,10 @@ namespace NationsPlugin
             }
             return null;
         }
-        [Command("nation fuckfuck", "debug stuff")]
-        [Permission(MyPromoteLevel.None)]
-        public void fuckfuckfuck()
-        {
-            if (Context.Player.IsAdmin || Context.Player.SteamUserId == 76561198045390854)
-            {
-                NationsPlugin.FUCKINGFUCKFUCK = !NationsPlugin.FUCKINGFUCKFUCK;
-                Context.Respond("Now to spam Crunch with messages!");
-            }
-
-        }
 
         [Command("repforce", "debug stuff")]
         [Permission(MyPromoteLevel.None)]
-        public void fuckfuckfuck(string tag)
+        public void ReputationTesting(string tag)
         {
             if (Context.Player.IsAdmin || Context.Player.SteamUserId == 76561198045390854)
             {
@@ -765,15 +754,6 @@ namespace NationsPlugin
                 EconUtils.takeMoney(Context.Player.Identity.IdentityId, depositAmount);
                 EconUtils.addMoney(account, depositAmount);
                 SendMessage("[CrunchEcon]", "Deposited", Color.Green, (long)Context.Player.SteamUserId);
-            }
-        }
-        [Command("fuckfuckfuck", "add nation to whitelist file")]
-        [Permission(MyPromoteLevel.None)]
-        public void fuckfuckfuckfuck()
-        {
-            if (NationsPlugin.FEDR == null)
-            {
-                Context.Respond("THIS IS NULL");
             }
         }
         [Command("nation add", "add nation to whitelist file")]
@@ -1795,7 +1775,27 @@ namespace NationsPlugin
             }
         }
 
-       
+    [Command("nationtest", "force friendly with target")]
+    [Permission(MyPromoteLevel.Admin)]
+    public void forceFriendlt(string tag)
+        {
+
+            IMyFaction playerfac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
+            IMyFaction target = MySession.Static.Factions.TryGetFactionByTag(tag);
+            MySession.Static.Factions.SetReputationBetweenFactions(playerfac.FactionId, target.FactionId, 1500);
+            MyFactionStateChange change = MyFactionStateChange.SendFriendRequest;
+            MyFactionStateChange change2 = MyFactionStateChange.AcceptFriendRequest;
+            Type FactionCollection = MySession.Static.Factions.GetType().Assembly.GetType("Sandbox.Game.Multiplayer.MyFactionCollection");
+            MethodInfo sendChange = FactionCollection?.GetMethod("SendFactionChange", BindingFlags.NonPublic | BindingFlags.Static);
+            List<object[]> ReturnPlayers = new List<object[]>();
+            object[] MethodInput = new object[] { change, target.FactionId, playerfac.FactionId, 0L };
+
+            sendChange?.Invoke(null, MethodInput);
+            object[] MethodInput2 = new object[] { change2, playerfac.FactionId, target.FactionId, 0L };
+            sendChange?.Invoke(null, MethodInput2);
+        }
+
+      
 
         [Command("nation join", "Join a nation")]
         [Permission(MyPromoteLevel.None)]
@@ -1944,6 +1944,8 @@ namespace NationsPlugin
                                                 Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
                                                 logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                          
+
                                                 foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                                 {
 
@@ -1954,6 +1956,7 @@ namespace NationsPlugin
                                                         MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                     }
                                                 }
+                                 
                                             }
                                             if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                             {
@@ -1967,6 +1970,7 @@ namespace NationsPlugin
                                                         MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
                                                         MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                     }
+
                                                 }
                                             }
                                         }

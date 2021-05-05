@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Torch.Managers.PatchManager;
+using VRage.Game.ModAPI;
 
 namespace NationsPlugin
 {
@@ -26,6 +27,15 @@ namespace NationsPlugin
         internal static readonly MethodInfo updatePatch2 =
                 typeof(ReputationPatch).GetMethod(nameof(Log1), BindingFlags.Static | BindingFlags.Public) ??
                 throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo AddFactionRepSuccess =
+typeof(MyFactionCollection).GetMethod("AddFactionPlayerReputationSuccess", BindingFlags.Static | BindingFlags.NonPublic) ??
+throw new Exception("Failed to find patch method");
+        internal static readonly MethodInfo RepSuccessPatch =
+                typeof(ReputationPatch).GetMethod(nameof(Log3), BindingFlags.Static | BindingFlags.Public) ??
+                throw new Exception("Failed to find patch method");
+
+
         internal static readonly MethodInfo update3 =
 typeof(MyFactionCollection).GetMethod("ChangeReputationWithPlayer", BindingFlags.Instance | BindingFlags.NonPublic) ??
 throw new Exception("Failed to find patch method");
@@ -40,6 +50,7 @@ throw new Exception("Failed to find patch method");
             ctx.GetPattern(update).Prefixes.Add(updatePatch);
             ctx.GetPattern(update2).Prefixes.Add(updatePatch2);
             ctx.GetPattern(update3).Prefixes.Add(updatePatch3);
+            ctx.GetPattern(AddFactionRepSuccess).Prefixes.Add(RepSuccessPatch);
         }
         public static void Log1(long playerIdentityId,
       long factionId,
@@ -49,7 +60,11 @@ throw new Exception("Failed to find patch method");
         {
             if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
             {
-                NationsPlugin.Log.Info("Reputation logging - AddFactionPlayerRep -- Player: " + playerIdentityId + " faction:" + factionId + " amount:" + delta);
+                IMyFaction fac = MySession.Static.Factions.TryGetFactionById(factionId);
+                if (delta != 0)
+                {
+                    NationsPlugin.Log.Info("Reputation logging - AddFactionPlayerRep -- Player: " + playerIdentityId + " faction:" + factionId + " tag:" + fac.Tag + " amount:" + delta);
+                }
             }
         }
 
@@ -57,7 +72,22 @@ throw new Exception("Failed to find patch method");
         {
             if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
             {
-                NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " amount:" + reputation);
+                IMyFaction fac = MySession.Static.Factions.TryGetFactionById(toFactionId);
+                NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " tag:" + fac.Tag +" amount:" + reputation);
+            }
+        }
+
+        public static void Log3(long playerId, List<MyFactionCollection.MyReputationChangeWrapper> changes)
+        {
+            if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
+            {
+                foreach (MyFactionCollection.MyReputationChangeWrapper change in changes)
+                {
+                    IMyFaction fac = MySession.Static.Factions.TryGetFactionById(change.FactionId);
+                    
+                    NationsPlugin.Log.Info("Reputation logging -- Player: " + playerId + " faction " + change.FactionId + " tag:" + fac.Tag + " amount:"+ change.Change + " total:" +change.RepTotal);
+                }
+             
             }
         }
         public static Boolean DamageFactionPlayerReputation(

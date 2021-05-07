@@ -234,6 +234,25 @@ namespace NationsPlugin
             MyFaction ACME = MySession.Static.Factions.TryGetFactionByTag("ACME");
             IMyFaction playerFac = MySession.Static.Factions.GetPlayerFaction(id.IdentityId);
             MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, ACME.FactionId, 0);
+            MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, ACME.FactionId, 0);
+            MyFaction UNIN = MySession.Static.Factions.TryGetFactionByTag("UNIN");
+            MyFaction FEDR = MySession.Static.Factions.TryGetFactionByTag("FEDR");
+            MyFaction CONS = MySession.Static.Factions.TryGetFactionByTag("CONS");
+            if (UNIN != null)
+            {
+                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, UNIN.FactionId, 0);
+                MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, UNIN.FactionId, 0);
+            }
+            if (CONS != null)
+            {
+                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, CONS.FactionId, 0);
+                MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, CONS.FactionId, 0);
+            }
+            if (FEDR != null)
+            {
+                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(id.IdentityId, FEDR.FactionId, 0);
+                MySession.Static.Factions.AddFactionPlayerReputation(id.IdentityId, FEDR.FactionId, 0);
+            }
             if (playerFac != null)
             {
 

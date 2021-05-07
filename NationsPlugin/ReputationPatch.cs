@@ -61,7 +61,7 @@ throw new Exception("Failed to find patch method");
             if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
             {
                 IMyFaction fac = MySession.Static.Factions.TryGetFactionById(factionId);
-                if (delta != 0)
+                if (delta != 0 && fac != null)
                 {
                     NationsPlugin.Log.Info("Reputation logging - AddFactionPlayerRep -- Player: " + playerIdentityId + " faction:" + factionId + " tag:" + fac.Tag + " amount:" + delta);
                 }
@@ -73,7 +73,10 @@ throw new Exception("Failed to find patch method");
             if (NationsPlugin.file != null && NationsPlugin.file.RepLogging)
             {
                 IMyFaction fac = MySession.Static.Factions.TryGetFactionById(toFactionId);
-                NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " tag:" + fac.Tag +" amount:" + reputation);
+                if (fac != null)
+                {
+                    NationsPlugin.Log.Info("Reputation logging - ChangeReputationWithPlayer -- Player: " + fromPlayerId + " faction:" + toFactionId + " tag:" + fac.Tag + " amount:" + reputation);
+                }
             }
         }
 
@@ -84,10 +87,11 @@ throw new Exception("Failed to find patch method");
                 foreach (MyFactionCollection.MyReputationChangeWrapper change in changes)
                 {
                     IMyFaction fac = MySession.Static.Factions.TryGetFactionById(change.FactionId);
-                    
-                    NationsPlugin.Log.Info("Reputation logging -- Player: " + playerId + " faction " + change.FactionId + " tag:" + fac.Tag + " amount:"+ change.Change + " total:" +change.RepTotal);
+                    if (fac != null)
+                    {
+                        NationsPlugin.Log.Info("Reputation logging -- Player: " + playerId + " faction " + change.FactionId + " tag:" + fac.Tag + " amount:" + change.Change + " total:" + change.RepTotal);
+                    }
                 }
-             
             }
         }
         public static Boolean DamageFactionPlayerReputation(

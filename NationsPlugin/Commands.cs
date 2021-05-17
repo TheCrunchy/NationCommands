@@ -85,11 +85,12 @@ namespace NationsPlugin
         public void fuk()
         {
             IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
-            if (playerFac != null) { 
-            String nationtag = NationsPlugin.GetNationTag(playerFac);
-            MyFaction UNINAM = MySession.Static.Factions.TryGetFactionByTag("UNIN-AM");
-            MyFaction FEDRAM = MySession.Static.Factions.TryGetFactionByTag("FEDR-AM");
-            MyFaction CONSAM = MySession.Static.Factions.TryGetFactionByTag("CONS-AM");
+            if (playerFac != null)
+            {
+                String nationtag = NationsPlugin.GetNationTag(playerFac);
+                MyFaction UNINAM = MySession.Static.Factions.TryGetFactionByTag("UNIN-AM");
+                MyFaction FEDRAM = MySession.Static.Factions.TryGetFactionByTag("FEDR-AM");
+                MyFaction CONSAM = MySession.Static.Factions.TryGetFactionByTag("CONS-AM");
                 if (UNINAM != null && FEDRAM != null && CONSAM != null)
                 {
                     if (nationtag != null)
@@ -277,7 +278,7 @@ namespace NationsPlugin
                         //foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
                         //{
                         //    System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
-                            
+
                         //    if (reps.TryGetValue(m.Value.PlayerId, out Dictionary<long, int> tempreps))
                         //    {
                         //        tempreps.Add(f.Value.FactionId, rep.Item2);
@@ -288,7 +289,7 @@ namespace NationsPlugin
                         //    {
                         //        Dictionary<long, int> tempreps2 = new Dictionary<long, int>();
                         //        tempreps2.Add(f.Value.FactionId, rep.Item2);
-                           
+
                         //        reps.Add(m.Value.PlayerId, tempreps2);
                         //    }
                         //}
@@ -304,18 +305,18 @@ namespace NationsPlugin
                 }
             }
             Context.Respond("That faction has now declared war on all factions");
-      
-                foreach (KeyValuePair<long,Dictionary<long, int>> playerFucks in reps)
-                {
+
+            foreach (KeyValuePair<long, Dictionary<long, int>> playerFucks in reps)
+            {
                 foreach (KeyValuePair<long, int> ff in playerFucks.Value)
                 {
-                   
+
                     MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(playerFucks.Key, ff.Key, ff.Value);
-              
+
                 }
-               
+
             }
-            
+
 
         }
 
@@ -357,14 +358,14 @@ namespace NationsPlugin
             {
                 Commands.SendMessage("Nation Chat", "Toggled off, use !n to toggle", Color.Yellow, (long)Context.Player.SteamUserId);
                 NationsPlugin.playersInNationChat.Remove((long)Context.Player.SteamUserId);
-               
+
                 return;
             }
             else
             {
-                Commands.SendMessage("Nation Chat" ,"Toggled on, use !n to toggle", Color.Yellow, (long)Context.Player.SteamUserId);
+                Commands.SendMessage("Nation Chat", "Toggled on, use !n to toggle", Color.Yellow, (long)Context.Player.SteamUserId);
                 NationsPlugin.playersInNationChat.Add((long)Context.Player.SteamUserId);
-             
+
                 return;
             }
 
@@ -390,7 +391,7 @@ namespace NationsPlugin
             switch (nation.ToUpper())
             {
                 case "FEDR":
-                    NationsPlugin.file.FedrMinister = (long) MySession.Static.Players.TryGetSteamId(player.IdentityId);
+                    NationsPlugin.file.FedrMinister = (long)MySession.Static.Players.TryGetSteamId(player.IdentityId);
                     Context.Respond("FEDR Minister set to " + player.DisplayName + ", is this correct?");
                     NationsPlugin.SaveConfig();
                     break;
@@ -406,7 +407,7 @@ namespace NationsPlugin
                     break;
             }
             Context.Respond("Added to the whitelist, remember to do it on all servers!");
-        
+
         }
         [Command("nation balance", "moneys")]
         [Permission(MyPromoteLevel.None)]
@@ -437,10 +438,10 @@ namespace NationsPlugin
                 }
                 if (NationsPlugin.file.UninMinister == (long)Context.Player.SteamUserId)
                 {
-          
-                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
-                        return;
-                    
+
+                    SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                    return;
+
                 }
                 else
                 {
@@ -468,10 +469,10 @@ namespace NationsPlugin
                 }
                 if (NationsPlugin.file.ConsMinister == (long)Context.Player.SteamUserId)
                 {
-            
-                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
-                        return;
-                    
+
+                    SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                    return;
+
                 }
                 else
                 {
@@ -498,10 +499,10 @@ namespace NationsPlugin
                 }
                 if (NationsPlugin.file.FedrMinister == (long)Context.Player.SteamUserId)
                 {
-           
-                        SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
-                        return;
-                    
+
+                    SendMessage("[CrunchEcon]", "Account balance :" + String.Format("{0:n0}", EconUtils.getBalance(account)), Color.Green, (long)Context.Player.SteamUserId);
+                    return;
+
                 }
                 else
                 {
@@ -560,7 +561,8 @@ namespace NationsPlugin
                     Context.Respond("Couldnt find the account, tell Crunch");
                     return;
                 }
-                if (NationsPlugin.file.UninMinister == (long)Context.Player.SteamUserId) {
+                if (NationsPlugin.file.UninMinister == (long)Context.Player.SteamUserId)
+                {
                     if (EconUtils.getBalance(account) >= depositAmount)
                     {
                         EconUtils.addMoney(Context.Player.Identity.IdentityId, depositAmount);
@@ -579,7 +581,7 @@ namespace NationsPlugin
                     SendMessage("[CrunchEcon]", "You are not the trade minister. You cannot withdraw.", Color.Red, (long)Context.Player.SteamUserId);
                     return;
                 }
-             
+
             }
             if (playerFac.Description.Contains("CONS"))
             {
@@ -668,7 +670,7 @@ namespace NationsPlugin
                 return;
             }
             Int64 depositAmount;
-                inputAmount = inputAmount.Replace(",", "");
+            inputAmount = inputAmount.Replace(",", "");
             inputAmount = inputAmount.Replace(".", "");
             inputAmount = inputAmount.Replace(" ", "");
             try
@@ -699,7 +701,7 @@ namespace NationsPlugin
                 {
                     if (m.Value.IsFounder)
                     {
-                       account = m.Value.PlayerId;
+                        account = m.Value.PlayerId;
                         break;
                     }
                 }
@@ -782,7 +784,8 @@ namespace NationsPlugin
                 switch (nation.ToUpper())
                 {
                     case "FEDR":
-                        if (NationsPlugin.FEDR.factions.ContainsKey(fac2.FactionId)){
+                        if (NationsPlugin.FEDR.factions.ContainsKey(fac2.FactionId))
+                        {
                             NationsPlugin.FEDR.factions.Remove(fac2.FactionId);
                         }
                         NationsPlugin.FEDR.factions.Add(fac2.FactionId, fac2.Tag);
@@ -805,7 +808,7 @@ namespace NationsPlugin
                         NationsPlugin.SaveWhitelist("UNIN", NationsPlugin.UNIN);
                         break;
                 }
-               Context.Respond("Added to the whitelist file, remember to do it on all servers!");
+                Context.Respond("Added to the whitelist file, remember to do it on all servers!");
             }
             catch (Exception e)
             {
@@ -915,7 +918,7 @@ namespace NationsPlugin
         //        return;
         //    }
         //    String description = fac2.Description;
-  
+
         //    if (name != "")
         //    {
         //            fac2.Description = fac2.Description.Replace("[" + tag.ToUpper() + "] # " + name, "");
@@ -940,20 +943,20 @@ namespace NationsPlugin
         ////    MyFactionDefinition factionDefinition = MyDefinitionManager.Static.TryGetFactionDefinition(fac2.Tag);
 
         //    //MySession.Static.Factions.EditFaction(fac2.FactionId, fac2.Tag, fac2.Name, fac2.Description, fac2.PrivateInfo, , fac2.FactionIcon.Value.Id, fac2.CustomColor, fac2.IconColor);
-           
+
         //}
         [Command("nation info", "display a nations members")]
         [Permission(MyPromoteLevel.None)]
         public void DisplayFactionInfo(string tag)
         {
-          
-                bool console = false;
-        
-                if (Context.Player == null)
-                {
-                    console = true;
-                }
-                IMyFaction fac = MySession.Static.Factions.TryGetFactionByTag(tag);
+
+            bool console = false;
+
+            if (Context.Player == null)
+            {
+                console = true;
+            }
+            IMyFaction fac = MySession.Static.Factions.TryGetFactionByTag(tag);
             if (fac == null)
             {
                 Context.Respond("Cant find that, try FEDR, CONS or UNIN");
@@ -992,51 +995,51 @@ namespace NationsPlugin
                     break;
 
             }
-                    if (!console)
-                    {
-                        DialogMessage m = new DialogMessage("Faction Info", fac.Name, "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
-                        ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
-                    }
-                    else
-                    {
-                        Context.Respond("Name: " + fac.Name + "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
-                    }
-                    return;
-                
+            if (!console)
+            {
+                DialogMessage m = new DialogMessage("Faction Info", fac.Name, "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
+                ModCommunication.SendMessageTo(m, Context.Player.SteamUserId);
+            }
+            else
+            {
+                Context.Respond("Name: " + fac.Name + "\nTag: " + fac.Tag + "\nMembers: " + sb.ToString());
+            }
+            return;
 
-            
+
+
         }
 
 
         public void sendNexusChatMessage(string message, long SteamId)
         {
-           // Sockets.Publish
+            // Sockets.Publish
             //
 
 
-            
+
         }
         public string getOnline(String nation)
         {
-      
-           
+
+
 
             List<object[]> ReturnPlayers = new List<object[]>();
             object[] MethodInput = new object[] { ReturnPlayers };
 
-          NationsPlugin.GetOnlinePlayers?.Invoke(null, MethodInput);
+            NationsPlugin.GetOnlinePlayers?.Invoke(null, MethodInput);
 
             //After inputing the object[] you can simply call this to get your return variable (since this method is by ref)
             ReturnPlayers = (List<object[]>)MethodInput[0];
 
             //Here you can call either my function, or create your own to convert it into more 'usable' data
             List<Player> Players = new List<Player>();
-            
-           foreach (object[] obj in ReturnPlayers)
+
+            foreach (object[] obj in ReturnPlayers)
             {
-            
-                Players.Add(new Player((string)obj[0], (ulong)obj[1], (long) obj[2], (int)obj[3]));
-           }
+
+                Players.Add(new Player((string)obj[0], (ulong)obj[1], (long)obj[2], (int)obj[3]));
+            }
             Dictionary<int, String> online = new Dictionary<int, string>();
             StringBuilder sb = new StringBuilder();
             int max = 0;
@@ -1051,19 +1054,20 @@ namespace NationsPlugin
             {
                 online.Add(i, "");
             }
-                foreach (Player player in Players)
+            foreach (Player player in Players)
             {
                 IMyFaction fac = FacUtils.GetPlayersFaction(player.IdentityID);
-                if (fac != null && fac.Description != null && fac.Description.Contains(nation)) {
-                   // sb.Append(player.OnServer + " # " + player.PlayerName + "\n");
-                   if (online.ContainsKey(player.OnServer))
+                if (fac != null && fac.Description != null && fac.Description.Contains(nation))
+                {
+                    // sb.Append(player.OnServer + " # " + player.PlayerName + "\n");
+                    if (online.ContainsKey(player.OnServer))
                     {
                         online.TryGetValue(player.OnServer, out string temp);
-                            temp += ", " + player.PlayerName ;
+                        temp += ", " + player.PlayerName;
                         online.Remove(player.OnServer);
                         online.Add(player.OnServer, temp);
                     }
-                   else
+                    else
                     {
                         online.Add(player.OnServer, player.PlayerName);
                     }
@@ -1071,7 +1075,7 @@ namespace NationsPlugin
 
 
             }
-  
+
             foreach (KeyValuePair<int, String> pairs in online)
             {
                 sb.Append("\n" + "Sector " + pairs.Key + " - " + pairs.Value + "\n");
@@ -1106,11 +1110,11 @@ namespace NationsPlugin
                             reqs.removeRequest(fac2.Tag);
                             Context.Respond("Accepting request, becoming peaceful, and Changing reputation!, relog may be required to see effects.");
                             //do the friend shit
-                        
 
-                          // MySession.Static.Factions.DisplayReputationChangeNotification((MySession.Static.Factions.TryGetFactionById(fac.FactionId) as MyFaction).Tag, change.Change);
 
-                     
+                            // MySession.Static.Factions.DisplayReputationChangeNotification((MySession.Static.Factions.TryGetFactionById(fac.FactionId) as MyFaction).Tag, change.Change);
+
+
 
                             MyFactionPeaceRequestState state = MySession.Static.Factions.GetRequestState(fac.FactionId, fac2.FactionId);
 
@@ -1122,17 +1126,17 @@ namespace NationsPlugin
                             MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
                             foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
                             {
-                                   MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
-                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 0, true, true);
+                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
+                                MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac2.FactionId, 0, true, true);
                             }
                             foreach (KeyValuePair<long, MyFactionMember> m in fac2.Members)
                             {
-                               MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
+                                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, fac2.FactionId, 0);
 
                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, fac.FactionId, 0, true, true);
 
                             }
-                     
+
                             repRequests.Remove(fac.FactionId);
                             repRequests.Add(fac.FactionId, reqs);
                         }
@@ -1143,7 +1147,7 @@ namespace NationsPlugin
                         Context.Respond("Sending a request!");
                         reqs.addRequest(fac.Tag, 0);
                         MyFactionPeaceRequestState state = MySession.Static.Factions.GetRequestState(fac.FactionId, fac2.FactionId);
-                    
+
 
                         if (state != MyFactionPeaceRequestState.Sent)
                         {
@@ -1278,9 +1282,9 @@ namespace NationsPlugin
             MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
             {
-             gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
-                           // NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
-             SendMessage(messagename, message, Color.Red, (long)p.Id.SteamId);
+                gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
+                // NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+                SendMessage(messagename, message, Color.Red, (long)p.Id.SteamId);
             }
         }
 
@@ -1296,7 +1300,7 @@ namespace NationsPlugin
                 return;
             }
 
-           
+
             IMyFaction playerFac = FacUtils.GetPlayersFaction(Context.Player.Identity.IdentityId);
             if (playerFac == null)
             {
@@ -1306,7 +1310,7 @@ namespace NationsPlugin
             String nation = "";
             if (reason != "")
             {
-             
+
 
                 reason = Context.RawArgs;
             }
@@ -1320,13 +1324,13 @@ namespace NationsPlugin
                 {
 
                     NationsPlugin.Log.Info("Cooldown for Player " + Context.Player.DisplayName + " still running! " + remainingSeconds + " seconds remaining!");
-            Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
-                //    DateTime start = DateTime.Now;
-             //    start.AddSeconds(remainingSeconds);
-               //    var diff = start.Subtract(DateTime.Now);
-                  
-               //     string time = String.Format("{0}:{1}:{2}", diff.Minutes, diff.Seconds);
-                 //   Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
+                    Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
+                    //    DateTime start = DateTime.Now;
+                    //    start.AddSeconds(remainingSeconds);
+                    //    var diff = start.Subtract(DateTime.Now);
+
+                    //     string time = String.Format("{0}:{1}:{2}", diff.Minutes, diff.Seconds);
+                    //   Context.Respond("Command is still on cooldown for " + remainingSeconds + " seconds.");
                     return;
                 }
                 currentCooldown = CreateNewCooldown(currentCooldownMap, Context.Player.IdentityId, NationsPlugin.file.CooldownMilliseconds);
@@ -1340,40 +1344,40 @@ namespace NationsPlugin
 
             if (EconUtils.getBalance(Context.Player.IdentityId) >= NationsPlugin.file.Price)
             {
-          
+
                 if (playerFac.Description.Contains("UNIN"))
                 {
                     if (NationsPlugin.file.doWhitelist)
                     {
-            
-                                if (!NationsPlugin.UNIN.factions.ContainsKey(playerFac.FactionId))
-                                {
-                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
-                                    return;
-                                }
-                               
-                        
+
+                        if (!NationsPlugin.UNIN.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+
+
                     }
-                    doSignal(Context.Player.Character.GetPosition(),"UNIN", NationsPlugin.file.UNIN, reason);
+                    doSignal(Context.Player.Character.GetPosition(), "UNIN", NationsPlugin.file.UNIN, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
                     Context.Respond("Signal sent! You were charged " + String.Format("{0:n0}", NationsPlugin.file.Price) + " SC for the convenience.", Color.Orange, NationsPlugin.file.Name);
-                   
-                        return;
+
+                    return;
                 }
                 if (playerFac.Description.Contains("CONS"))
                 {
                     if (NationsPlugin.file.doWhitelist)
                     {
-                
-                         
-                                if (!NationsPlugin.CONS.factions.ContainsKey(playerFac.FactionId))
-                                {
-                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
-                                    return;
-                                }
-                            
-                     
-                        
+
+
+                        if (!NationsPlugin.CONS.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+
+
+
                     }
                     doSignal(Context.Player.Character.GetPosition(), "CONS", NationsPlugin.file.CONS, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
@@ -1384,12 +1388,12 @@ namespace NationsPlugin
                 {
                     if (NationsPlugin.file.doWhitelist)
                     {
-                                if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
-                                {
-                                    Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
-                                    return;
-                                }
-              
+                        if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
+                        {
+                            Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
+                            return;
+                        }
+
                     }
                     doSignal(Context.Player.Character.GetPosition(), "FEDR", NationsPlugin.file.FEDR, reason);
                     EconUtils.takeMoney(Context.Player.IdentityId, NationsPlugin.file.Price);
@@ -1427,13 +1431,13 @@ namespace NationsPlugin
         }
 
 
-            public void doSignal(Vector3D Position, String tag, String nation, String reason)
+        public void doSignal(Vector3D Position, String tag, String nation, String reason)
         {
             MyGps gps = CreateGps(Position, new Color(NationsPlugin.file.red, NationsPlugin.file.green, NationsPlugin.file.blue), 300, nation, reason);
 
-               NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
-    
-         
+            NationsPlugin.signalsToClear.Add(gps, DateTime.Now.AddMilliseconds(NationsPlugin.file.MillisecondsTimeItLasts));
+
+
             MyGpsCollection gpsCollection = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             foreach (MyPlayer p in MySession.Static.Players.GetOnlinePlayers())
             {
@@ -1441,14 +1445,14 @@ namespace NationsPlugin
                 distance = distance * 1000;
                 if (distance <= NationsPlugin.file.DetectionRangeForNearbyInKM)
                 {
-                    
-                   
+
+
 
                     IMyFaction playerFac = FacUtils.GetPlayersFaction(p.Identity.IdentityId);
                     if (playerFac != null)
                     {
                         if (NationsPlugin.file.MessageEnabled && !playerFac.Description.Contains(tag))
-                 
+
                         {
                             MyGps gps2 = CreateGps(Position, new Color(NationsPlugin.file.hostilered, NationsPlugin.file.hostilegreen, NationsPlugin.file.hostileblue), 60, nation, reason);
                             MyGps gpsRef = gps2;
@@ -1485,7 +1489,7 @@ namespace NationsPlugin
                         MyGps gpsRef = gps;
                         long entityId = 0L;
                         entityId = gps.EntityId;
-                      
+
                         gpsCollection.SendAddGps(p.Identity.IdentityId, ref gpsRef, entityId, true);
                         // if (NationsPlugin.file.RemoveOldOnNewSignal)
                         //{
@@ -1526,7 +1530,7 @@ namespace NationsPlugin
                 }
             }
         }
-              private MyGps CreateGps(Vector3D Position, Color gpsColor, int seconds, String Nation, String Reason)
+        private MyGps CreateGps(Vector3D Position, Color gpsColor, int seconds, String Nation, String Reason)
         {
 
             MyGps gps = new MyGps
@@ -1541,7 +1545,7 @@ namespace NationsPlugin
                 Description = "Nation Distress Signal \n" + Reason,
             };
             gps.UpdateHash();
-          
+
 
             return gps;
         }
@@ -1617,27 +1621,98 @@ namespace NationsPlugin
                             foreach (KeyValuePair<long, MyFactionMember> mem in f.Value.Members)
                             {
                                 MyIdentity id = MySession.Static.Players.TryGetIdentity(mem.Value.PlayerId);
-                               
-                                if (MySession.Static.Players.TryGetIdentity(mem.Value.PlayerId).LastLoginTime >= cutoff)
+                                DateTime referenceTime = id.LastLoginTime;
+                                if (id.LastLogoutTime > referenceTime)
+                                    referenceTime = id.LastLogoutTime;
+                                if (referenceTime >= cutoff)
                                 {
                                     payTheseFucks.Add(mem.Value.PlayerId);
-                                    
+
                                 }
-                                
+
                             }
                         }
                     }
                 }
             }
-            long amountToPay = amount * payTheseFucks.Count();
+            long amountToPay = amount / payTheseFucks.Count();
             foreach (long id in payTheseFucks)
             {
-                MyBankingSystem.ChangeBalance(id, amount);
+                MyBankingSystem.ChangeBalance(id, amountToPay);
             }
-            Context.Respond("Paid out " + String.Format("{0:n0}", amount) + " SC to each member");
+            Context.Respond("Paid out " + String.Format("{0:n0}", amountToPay) + " SC to each member");
 
         }
+        [Command("tax", "give money to members of a nation")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void tax(string nation, string inputAmount)
+        {
+            int count = 0;
+            StringBuilder response = new StringBuilder();
+            List<long> payTheseFucks = new List<long>();
+            Int64 amount;
+            inputAmount = inputAmount.Replace(",", "");
+            inputAmount = inputAmount.Replace(".", "");
+            inputAmount = inputAmount.Replace(" ", "");
+            try
+            {
+                amount = Int64.Parse(inputAmount);
+            }
+            catch (Exception)
+            {
+                Context.Respond("Error parsing number");
+                return;
+            }
+            if (amount < 0 || amount == 0)
+            {
+                Context.Respond("Input must be positive");
+                return;
+            }
+            var cutoff = DateTime.Now - TimeSpan.FromDays(10);
+            foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
+            {
 
+                if (f.Value.Description != null)
+                {
+                    //if (NationsPlugin.file.doWhitelist)
+                    //{
+                    //    IMyFaction nationfac = MySession.Static.Factions.TryGetFactionByTag(nation);
+
+                    //    if (nationfac != null && f.Value.Description.Contains(nation.ToUpper()) && nationfac.Description != null && nationfac.Description.Contains("[" + f.Value.Tag.ToUpper() + "]"))
+                    //    {
+                    //        count += f.Value.Members.Count;
+                    //        response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
+                    //    }
+                    //}
+                    //else
+                    {
+                        if (f.Value.Description.Contains(nation.ToUpper()))
+                        {
+                            foreach (KeyValuePair<long, MyFactionMember> mem in f.Value.Members)
+                            {
+                                MyIdentity id = MySession.Static.Players.TryGetIdentity(mem.Value.PlayerId);
+                                DateTime referenceTime = id.LastLoginTime;
+                                if (id.LastLogoutTime > referenceTime)
+                                    referenceTime = id.LastLogoutTime;
+                                if (referenceTime >= cutoff)
+                                {
+                                    payTheseFucks.Add(mem.Value.PlayerId);
+
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            long amountToPay = amount / payTheseFucks.Count();
+            foreach (long id in payTheseFucks)
+            {
+                EconUtils.takeMoney(id, amount);
+            }
+            Context.Respond("Paid out " + String.Format("{0:n0}", amountToPay) + " SC to each member");
+
+        }
         [Command("nation list", "scan descriptions for nation")]
         [Permission(MyPromoteLevel.Admin)]
         public void scan(string nation)
@@ -1649,15 +1724,16 @@ namespace NationsPlugin
 
                 if (f.Value.Description != null)
                 {
-                    if (NationsPlugin.file.doWhitelist) {
-                        IMyFaction nationfac = MySession.Static.Factions.TryGetFactionByTag(nation);
-                     
-                    if (nationfac != null && f.Value.Description.Contains(nation.ToUpper()) && nationfac.Description != null && nationfac.Description.Contains("["+f.Value.Tag.ToUpper()+"]"))
+                    if (NationsPlugin.file.doWhitelist)
                     {
-                        count += f.Value.Members.Count;
-                        response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
+                        IMyFaction nationfac = MySession.Static.Factions.TryGetFactionByTag(nation);
+
+                        if (nationfac != null && f.Value.Description.Contains(nation.ToUpper()) && nationfac.Description != null && nationfac.Description.Contains("[" + f.Value.Tag.ToUpper() + "]"))
+                        {
+                            count += f.Value.Members.Count;
+                            response.Append(f.Value.Name + " [" + f.Value.Tag + "] MEMBERS : " + f.Value.Members.Count + "\n");
+                        }
                     }
-                }
                     else
                     {
                         if (f.Value.Description.Contains(nation.ToUpper()))
@@ -1697,7 +1773,7 @@ namespace NationsPlugin
                     }
                     if (tagsInDescription > 1)
                     {
-                        response +=  f.Value.Name + " " + f.Value.Tag + ", ";
+                        response += f.Value.Name + " " + f.Value.Tag + ", ";
                         NationsPlugin.Log.Info("NATION - This guys trying to do !nationjoin with multiple tags " + Context.Player + " " + f.Value.Name + " " + f.Value.Tag);
                     }
                 }
@@ -1710,7 +1786,7 @@ namespace NationsPlugin
         [Permission(MyPromoteLevel.None)]
         public void old(string tag)
         {
-           // Context.Respond("No no, do !nation join");
+            // Context.Respond("No no, do !nation join");
             massjoin(tag);
         }
 
@@ -1726,9 +1802,9 @@ namespace NationsPlugin
             }
             if (playerFac.IsLeader(Context.Player.IdentityId) || playerFac.IsFounder(Context.Player.IdentityId))
             {
-            
-        
-    
+
+
+
                 List<long> ids = new List<long>();
                 foreach (KeyValuePair<long, MyFactionMember> id in playerFac.JoinRequests)
                 {
@@ -1748,9 +1824,9 @@ namespace NationsPlugin
             }
             else
             {
-                    Context.Respond("You are not a faction leader or founder!");
-                    return;
-                
+                Context.Respond("You are not a faction leader or founder!");
+                return;
+
             }
         }
         [Command("fixrep", "fixes negative reputation")]
@@ -1774,10 +1850,137 @@ namespace NationsPlugin
                 }
             }
         }
+        public static string GetNationTag(IMyFaction fac)
+        {
+            if (fac.Description.Contains("UNIN"))
+                return "UNIN";
 
-    [Command("nationtest", "force friendly with target")]
-    [Permission(MyPromoteLevel.Admin)]
-    public void forceFriendlt(string tag)
+            if (fac.Description.Contains("FEDR"))
+                return "FEDR";
+
+            if (fac.Description.Contains("CONS"))
+                return "CONS";
+            return null;
+
+        }
+        [Command("koth static delete", "delete static grids at target koth")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void DeleteStatics(int radius, int max, double x, double y, double z)
+        {
+            Dictionary<string, int> nationStaticGrids = new Dictionary<string, int>();
+
+
+            BoundingSphereD sphere = new BoundingSphereD(new Vector3D(x, y, z), radius);
+
+            foreach (MyCubeGrid grid in MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>())
+            {
+                if (grid.IsStatic)
+                {
+            
+
+                    if (FacUtils.GetPlayersFaction(FacUtils.GetOwner(grid)) != null)
+                    {
+                        IMyFaction fac = FacUtils.GetPlayersFaction(FacUtils.GetOwner(grid));
+                        if (fac.Tag.Length > 3)
+                        {
+                            continue;
+                        }
+                        if (max == 0)
+                        {
+                            var b = grid.GetFatBlocks<MyCockpit>();
+               
+                            foreach (var c in b)
+                            {
+                                c.RemovePilot();
+                            }
+                            grid.Close();
+                            NationsPlugin.Log.Info("Deleting static grid for going over static limit at koth " + grid.DisplayNameText);
+                            SendMessage("KOTH", "Deleting static grid for going over limits " + grid.DisplayNameText, Color.DarkRed, 0L);
+                            continue;
+                        }
+                        if (GetNationTag(fac) != null)
+                        {
+                            string nation = GetNationTag(fac);
+                            if (nationStaticGrids.TryGetValue(nation, out int value))
+                            {
+
+                                if (value >= max)
+                                {
+                                    var b = grid.GetFatBlocks<MyCockpit>();
+                                    foreach (var c in b)
+                                    {
+                                        c.RemovePilot();
+                                    }
+                                    grid.Close();
+                                    NationsPlugin.Log.Info("Deleting static grid for going over static limit at koth " + grid.DisplayNameText);
+                                    SendMessage("KOTH", "Deleting static grid for going over limits " + grid.DisplayNameText, Color.DarkRed, 0L);
+                                }
+                                else
+                                {
+                                    nationStaticGrids[nation]++;
+                                }
+                            }
+                            else
+                            {
+                                nationStaticGrids.Add(nation, 1);
+                            }
+                        }else {
+                            if (max == 0)
+                            {
+                                var b = grid.GetFatBlocks<MyCockpit>();
+                                foreach (var c in b)
+                                {
+                                    c.RemovePilot();
+                                }
+                                grid.Close();
+                                NationsPlugin.Log.Info("Deleting static grid for going over static limit at koth " + grid.DisplayNameText);
+                                SendMessage("KOTH", "Deleting static grid for going over limits " + grid.DisplayNameText, Color.DarkRed, 0L);
+                                continue;
+                            }
+                            if (nationStaticGrids.TryGetValue(fac.Tag, out int value))
+                            {
+
+                                if (value >= max)
+                                {
+                                    var b = grid.GetFatBlocks<MyCockpit>();
+                                    foreach (var c in b)
+                                    {
+                                        c.RemovePilot();
+                                    }
+                                    grid.Close();
+                                    NationsPlugin.Log.Info("Deleting static grid for going over static limit at koth " + grid.DisplayNameText);
+                                    SendMessage("KOTH", "Deleting static grid for going over limits " + grid.DisplayNameText, Color.DarkRed, 0L);
+                                }
+                                else
+                                {
+                                    nationStaticGrids[fac.Tag]++;
+                                }
+                            }
+                            else
+                            {
+                                nationStaticGrids.Add(fac.Tag, 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var b = grid.GetFatBlocks<MyCockpit>();
+                        foreach (var c in b)
+                        {
+                            c.RemovePilot();
+                        }
+                        grid.Close();
+                        NationsPlugin.Log.Info("Deleting static grid for having no faction at koth " + grid.DisplayNameText);
+                        SendMessage("KOTH", "Deleting static grid for having no faction at koth " + grid.DisplayNameText, Color.DarkRed, 0L);
+                    }
+                }
+            }
+
+        }
+
+        [Command("nationtest", "force friendly with target")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void forceFriendlt(string tag)
         {
 
             IMyFaction playerfac = FacUtils.GetPlayersFaction(Context.Player.IdentityId);
@@ -1795,7 +1998,7 @@ namespace NationsPlugin
             sendChange?.Invoke(null, MethodInput2);
         }
 
-      
+
 
         [Command("nation join", "Join a nation")]
         [Permission(MyPromoteLevel.None)]
@@ -1827,7 +2030,7 @@ namespace NationsPlugin
                 switch (nation.Tag.ToUpper())
                 {
                     case "FEDR":
-                       if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
+                        if (!NationsPlugin.FEDR.factions.ContainsKey(playerFac.FactionId))
                         {
                             Context.Respond("You havent been added to the whitelist so you cannot use the !nationjoin.", Color.Red, "The Government");
                             return;
@@ -1876,10 +2079,11 @@ namespace NationsPlugin
             if (playerFac.PrivateInfo.ToLower().Contains("exclude["))
             {
                 excluding = true;
-                
+
                 String exclusionBeforeFormat = GetStringBetweenCharacters(playerFac.PrivateInfo, '[', ']');
-                if (exclusionBeforeFormat.Contains(",")){ 
-                String[] addToExclusions = exclusionBeforeFormat.Split(',');
+                if (exclusionBeforeFormat.Contains(","))
+                {
+                    String[] addToExclusions = exclusionBeforeFormat.Split(',');
                     foreach (String s in addToExclusions)
                     {
                         exclusions.Add(s.ToLower());
@@ -1890,34 +2094,34 @@ namespace NationsPlugin
                     exclusions.Add(exclusionBeforeFormat.ToLower());
                 }
 
-                
+
             }
             if (playerFac.IsLeader(Context.Player.IdentityId) || playerFac.IsFounder(Context.Player.IdentityId))
             {
-                
+
                 if (playerFac.Description.Contains(tag))
                 {
-                   
+
                     foreach (KeyValuePair<long, MyFaction> f in MySession.Static.Factions)
                     {
                         if (f.Value != null && f.Value != playerFac)
                         {
                             if (f.Value.Description != null && f.Value.Description.Contains(tag) && f.Value.Tag.Length == 3)
                             {
-                         
-                                    int tagsInDescription2 = 0;
-                                    if (f.Value.Description.Contains("UNIN"))
-                                    {
-                                        tagsInDescription++;
-                                    }
-                                    if (f.Value.Description.Contains("FEDR"))
-                                    {
-                                        tagsInDescription++;
-                                    }
-                                    if (f.Value.Description.Contains("CONS"))
-                                    {
-                                        tagsInDescription++;
-                                    }
+
+                                int tagsInDescription2 = 0;
+                                if (f.Value.Description.Contains("UNIN"))
+                                {
+                                    tagsInDescription++;
+                                }
+                                if (f.Value.Description.Contains("FEDR"))
+                                {
+                                    tagsInDescription++;
+                                }
+                                if (f.Value.Description.Contains("CONS"))
+                                {
+                                    tagsInDescription++;
+                                }
                                 if (tagsInDescription2 > 1)
                                 {
 
@@ -1936,15 +2140,15 @@ namespace NationsPlugin
                                             if (state != MyFactionPeaceRequestState.Sent)
                                             {
                                                 Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
-                                              logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
- 
+                                                logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
+
                                             }
                                             if (state == MyFactionPeaceRequestState.Pending)
                                             {
                                                 Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
                                                 logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
-                                          
+
 
                                                 foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                                 {
@@ -1956,7 +2160,7 @@ namespace NationsPlugin
                                                         MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                                     }
                                                 }
-                                 
+
                                             }
                                             if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                             {
@@ -1981,8 +2185,8 @@ namespace NationsPlugin
                                         if (state != MyFactionPeaceRequestState.Sent)
                                         {
                                             Sandbox.Game.Multiplayer.MyFactionCollection.SendPeaceRequest(playerFac.FactionId, f.Value.FactionId);
-                                             logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
-  
+                                            logThis.Append("NATION REQUESTS - Sending peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
+
                                         }
                                         if (state == MyFactionPeaceRequestState.Pending)
                                         {
@@ -2003,17 +2207,17 @@ namespace NationsPlugin
                                         if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                         {
                                             MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
-                                           
+
                                         }
                                         foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                         {
-                                         System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
-                                           if (rep.Item2 < 0)
+                                            System.Tuple<MyRelationsBetweenFactions, int> rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId);
+                                            if (rep.Item2 < 0)
                                             {
                                                 MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(m.Value.PlayerId, f.Value.FactionId, 0);
                                                 MySession.Static.Factions.AddFactionPlayerReputation(m.Value.PlayerId, f.Value.FactionId, 0, true, true);
                                             }
-                                           
+
                                         }
                                     }
                                 }

@@ -175,8 +175,13 @@ namespace NationsPlugin
         private static ITorchBase torchbase;
 
 
+       public static MethodInfo sendChange;
 
-
+        public void SetupFriendMethod()
+        {
+            Type FactionCollection = MySession.Static.Factions.GetType().Assembly.GetType("Sandbox.Game.Multiplayer.MyFactionCollection");
+           sendChange = FactionCollection?.GetMethod("SendFactionChange", BindingFlags.NonPublic | BindingFlags.Static);
+        }
         public override void Init(ITorchBase torch)
         {
             torchbase = torch;
@@ -382,6 +387,7 @@ namespace NationsPlugin
             // SaveWhitelist("UNIN", UNIN);
             TorchState = TorchSessionState.Loaded;
             SetupMethod();
+                SetupFriendMethod();
             /// SetupFriendRequests();
             TorchChatMessage message1 = new TorchChatMessage();
             _chatmanager = Torch.CurrentSession.Managers.GetManager<ChatManagerServer>();

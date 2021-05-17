@@ -1123,6 +1123,7 @@ namespace NationsPlugin
                             {
                                 Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(fac.FactionId, fac2.FactionId);
                             }
+                            DoFriendlyUpdate(fac.FactionId, fac2.FactionId);
                             MySession.Static.Factions.SetReputationBetweenFactions(fac.FactionId, fac2.FactionId, 1500);
                             foreach (KeyValuePair<long, MyFactionMember> m in fac.Members)
                             {
@@ -1563,15 +1564,7 @@ namespace NationsPlugin
             ScriptedChatMsg scriptedChatMsg2 = scriptedChatMsg1;
             MyMultiplayerBase.SendScriptedChatMessage(ref scriptedChatMsg2);
         }
-        [Command("crunch", "crunch testing thing")]
-        [Permission(MyPromoteLevel.None)]
-        public void testCrunch()
-        {
-            if (Context.Player.PromoteLevel == MyPromoteLevel.Admin || Context.Player.SteamUserId == 76561198045390854)
-            {
-                NationsPlugin.CRUNCH();
-            }
-        }
+
 
         [Command("dividend", "give money to members of a nation")]
         [Permission(MyPromoteLevel.Admin)]
@@ -1998,6 +1991,16 @@ namespace NationsPlugin
             sendChange?.Invoke(null, MethodInput2);
         }
 
+        public void DoFriendlyUpdate(long firstId, long SecondId)
+        {
+         MyFactionStateChange change = MyFactionStateChange.SendFriendRequest;
+        MyFactionStateChange change2 = MyFactionStateChange.AcceptFriendRequest;
+            List<object[]> Input = new List<object[]>();
+            object[] MethodInput = new object[] { change, firstId, SecondId, 0L };
+            NationsPlugin.sendChange?.Invoke(null, MethodInput);
+            object[] MethodInput2 = new object[] { change2, SecondId, firstId, 0L };
+            NationsPlugin.sendChange?.Invoke(null, MethodInput2);
+        }
 
 
         [Command("nation join", "Join a nation")]
@@ -2149,7 +2152,7 @@ namespace NationsPlugin
                                                 logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
 
-
+                                                DoFriendlyUpdate(playerFac.FactionId, f.Value.FactionId);
                                                 foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                                 {
 
@@ -2165,6 +2168,7 @@ namespace NationsPlugin
                                             if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                             {
                                                 MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                                DoFriendlyUpdate(playerFac.FactionId, f.Value.FactionId);
                                                 foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                                 {
 
@@ -2193,6 +2197,7 @@ namespace NationsPlugin
                                             Sandbox.Game.Multiplayer.MyFactionCollection.AcceptPeace(playerFac.FactionId, f.Value.FactionId);
                                             logThis.Append("NATION REQUESTS - Accepting peace reqest between " + playerFac.Name + " " + playerFac.Tag + " and " + f.Value.Name + " " + f.Value.Tag);
                                             MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
+                                            DoFriendlyUpdate(playerFac.FactionId, f.Value.FactionId);
                                             foreach (KeyValuePair<long, MyFactionMember> m in playerFac.Members)
                                             {
 
@@ -2206,6 +2211,7 @@ namespace NationsPlugin
                                         }
                                         if (MySession.Static.Factions.AreFactionsNeutrals(playerFac.FactionId, f.Value.FactionId))
                                         {
+                                            DoFriendlyUpdate(playerFac.FactionId, f.Value.FactionId);
                                             MySession.Static.Factions.SetReputationBetweenFactions(playerFac.FactionId, f.Value.FactionId, 1500);
 
                                         }
